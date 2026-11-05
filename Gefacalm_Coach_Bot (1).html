@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#2f3d94">
+<title>Gefacalm Coach</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+:root{
+  --hdr:#2f3d94;--hdr-tx:#fff;--bg:#efe7dc;--dot:rgba(47,61,148,.07);
+  --in:#fff;--out:#d9fdd3;--doc:#e8f0fe;--doc-line:#4a7bd8;
+  --tx:#111b21;--mut:#667781;--acc:#4d8a1e;--acc-d:#3b6c16;
+  --card:#fff;--line:rgba(17,27,33,.12);
+  --say:#eef6e3;--proof:#eef1fb;--avoid:#fdecec;--avoid-tx:#9b1c1c;
+  --chip:#fff;--chip-tx:#2f3d94;--chip-line:rgba(47,61,148,.35);
+  --sheet:#fff;--field:#fff;--bar:#f0f2f5;
+  --t-deck:#0f7a3d;--t-deck-bg:#e3f6ea;--t-beyond:#9a5b00;--t-beyond-bg:#fff1d6;--t-coach:#5b3fb5;--t-coach-bg:#ece7fb;
+  --shadow:0 1px .5px rgba(11,20,26,.14);
+}
+[data-theme=dark]{
+  --hdr:#1c2240;--bg:#0b141a;--dot:rgba(255,255,255,.035);
+  --in:#202c33;--out:#005c4b;--doc:#1b2a44;--doc-line:#6d9bf0;
+  --tx:#e9edef;--mut:#8696a0;--card:#202c33;--line:rgba(255,255,255,.12);
+  --say:#22301a;--proof:#1d2447;--avoid:#3b1f22;--avoid-tx:#ffb4b4;
+  --chip:#1f2c34;--chip-tx:#aab6ff;--chip-line:rgba(170,182,255,.35);
+  --sheet:#202c33;--field:#2a3942;--bar:#111b21;
+  --t-deck:#6ee7a0;--t-deck-bg:#12382a;--t-beyond:#ffc861;--t-beyond-bg:#3d2f10;--t-coach:#c3b2ff;--t-coach-bg:#2b2450;
+  --shadow:none;
+}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--tx);background:#d9d4cc;overflow:hidden}
+[data-theme=dark] body{background:#050a0d}
+.app{position:relative;display:flex;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto;background:var(--bg);overflow:hidden}
+@media(min-width:700px){
+  body{background:linear-gradient(#2f3d94 0 200px,#d9d4cc 200px)}
+  [data-theme=dark] body{background:linear-gradient(#161b3a 0 200px,#050a0d 200px)}
+  .app{height:min(calc(100dvh - 32px),880px);margin:16px auto;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+}
+
+/* header */
+.hdr{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--hdr);color:var(--hdr-tx);flex:none;z-index:3}
+.avatar{position:relative;width:42px;height:42px;border-radius:50%;background:#fff;flex:none}
+.avatar img{width:100%;height:100%;border-radius:50%;display:block}
+.logo{display:block;width:100%;max-width:190px;height:auto;border-radius:8px;background:#fff}
+.avatar .dot{position:absolute;right:0;bottom:0;width:11px;height:11px;border-radius:50%;background:#25d366;border:2px solid var(--hdr)}
+.who{flex:1;min-width:0}
+.name{font-weight:700;font-size:16.5px;line-height:1.2}
+.status{font-size:12.5px;opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:42px;height:42px;border:0;background:transparent;color:inherit;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.ib:hover,.ib:focus-visible{background:rgba(255,255,255,.14);outline:none}
+.ring svg{display:block}
+
+/* chat */
+.chat{position:relative;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 10px 8px;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.6px);background-size:22px 22px;scroll-behavior:auto}
+.datechip{text-align:center;margin:2px 0 10px}
+.datechip span{display:inline-block;background:var(--card);color:var(--mut);font-size:12px;padding:4px 10px;border-radius:8px;box-shadow:var(--shadow)}
+.row{display:flex;margin:0 0 4px;animation:pop .22s ease-out both}
+.row.me{justify-content:flex-end}
+.row.bot{justify-content:flex-start}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+.bubble{position:relative;max-width:88%;padding:7px 10px 6px;border-radius:12px;font-size:15px;line-height:1.42;box-shadow:var(--shadow);overflow-wrap:anywhere;word-break:break-word}
+.row.bot .bubble{background:var(--in);border-top-left-radius:3px}
+.row.me .bubble{background:var(--out);border-top-right-radius:3px}
+.bubble.card{max-width:94%;width:94%}
+.bubble.doctor{background:var(--doc);border-left:4px solid var(--doc-line);max-width:92%}
+.bubble .meta{display:flex;justify-content:flex-end;align-items:center;gap:3px;font-size:11px;color:var(--mut);margin-top:2px}
+.spk{border:0;background:transparent;color:var(--mut);font-size:15px;line-height:1;cursor:pointer;padding:3px 7px;border-radius:12px;min-height:28px;margin-right:auto}
+.spk:hover,.spk:focus-visible{background:var(--proof);outline:none}
+.spk.on{background:var(--acc);color:#fff}
+.tick{color:#53bdeb;font-size:13px;letter-spacing:-3px}
+.ttl{font-weight:700;margin-bottom:3px}
+.ln{margin:0}.gap{height:6px}
+.bl{display:flex;gap:7px;margin:2px 0}.bl>span:first-child{flex:none;min-width:12px;color:var(--acc-d);font-weight:700}
+[data-theme=dark] .bl>span:first-child{color:#b6e07f}
+.sb{display:flex;gap:6px;margin:1px 0 1px 16px;font-size:14px}.sb>span:first-child{color:var(--mut)}
+.src{display:inline-flex;gap:6px;align-items:flex-start;margin-top:7px;padding:4px 8px;border-radius:8px;font-size:12px;line-height:1.3}
+.src b{white-space:nowrap}
+.src.ref{background:var(--t-deck-bg);color:var(--t-deck)}
+.say{background:var(--say);border-left:4px solid var(--acc);border-radius:8px;padding:8px 10px}
+.sayh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--acc-d);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+[data-theme=dark] .sayh{color:#b6e07f}
+.cp{border:1px solid var(--acc);background:transparent;color:var(--acc-d);font-size:12px;font-weight:700;border-radius:999px;padding:4px 11px;cursor:pointer;text-transform:none;letter-spacing:0;min-height:28px}
+[data-theme=dark] .cp{color:#b6e07f}
+.sayt{font-size:15px;font-style:italic}
+.proof{background:var(--proof);border-radius:8px;padding:8px 10px}
+.ph{font-size:12px;font-weight:700;color:var(--chip-tx);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.avoid{margin-top:7px;background:var(--avoid);color:var(--avoid-tx);border-radius:8px;padding:6px 9px;font-size:13.5px}
+.docname{font-size:12px;font-weight:700;color:var(--doc-line);margin-bottom:2px}
+.docq{font-size:16px;font-weight:600}
+
+/* typing */
+.typing .bubble{display:flex;gap:4px;padding:11px 13px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--mut);opacity:.5;animation:b 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{transform:none;opacity:.45}30%{transform:translateY(-4px);opacity:1}}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 6px 2px;animation:pop .25s ease-out both}
+.chip{border:1.5px solid var(--chip-line);background:var(--chip);color:var(--chip-tx);font:inherit;font-size:14px;font-weight:600;padding:8px 13px;border-radius:18px;cursor:pointer;min-height:38px;text-align:left;box-shadow:var(--shadow)}
+.chip:hover,.chip:focus-visible{border-color:var(--acc);outline:none}
+.chip.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip.pri:hover{background:var(--acc-d)}
+
+/* list / category cards */
+.list{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;width:94%;max-width:94%}
+.lh{padding:10px 12px;font-weight:700;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.li{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;color:var(--chip-tx);font:inherit;font-size:14.5px;padding:11px 12px;cursor:pointer;min-height:44px}
+.li:first-of-type{border-top:0}
+.li:hover,.li:focus-visible{background:var(--proof);outline:none}
+.li span{color:var(--mut);font-size:18px;flex:none}
+.li .t{flex:1;color:inherit;font-size:inherit}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:94%}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:left;font:inherit;color:var(--tx);cursor:pointer;box-shadow:var(--shadow);min-height:84px}
+.cat:hover,.cat:focus-visible{border-color:var(--acc);outline:none}
+.cat b{display:block;font-size:14.5px;margin:2px 0}
+.cat small{display:block;color:var(--mut);font-size:12px;line-height:1.3}
+.cat .ci{font-size:22px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.tile{background:var(--proof);border-radius:10px;padding:8px 9px}
+.tile b{display:block;font-size:17px;color:var(--acc-d);line-height:1.15}
+[data-theme=dark] .tile b{color:#b6e07f}
+.tile span{display:block;font-size:12px;color:var(--mut);line-height:1.25;margin-top:2px}
+.score{display:grid;gap:3px}
+.score div{display:flex;gap:7px}
+
+/* bottom bars */
+.suggest{flex:none;background:var(--bar);border-top:1px solid var(--line)}
+.sg{display:flex;width:100%;gap:10px;align-items:center;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--tx);font:inherit;font-size:14.5px;text-align:left;padding:10px 14px;cursor:pointer;min-height:44px}
+.sg:last-child{border-bottom:0}
+.sg i{font-style:normal;opacity:.7}
+.sg:hover,.sg:focus-visible{background:var(--proof);outline:none}
+.shortcuts{flex:none;display:flex;gap:8px;overflow-x:auto;padding:8px 10px 2px;background:var(--bar);scrollbar-width:none}
+.shortcuts::-webkit-scrollbar{display:none}
+.pill{flex:none;border:1px solid var(--chip-line);background:var(--chip);color:var(--chip-tx);font:inherit;font-size:13.5px;font-weight:600;border-radius:999px;padding:7px 13px;cursor:pointer;min-height:36px;white-space:nowrap}
+.pill:hover,.pill:focus-visible{border-color:var(--acc);outline:none}
+.composer{flex:none;display:flex;gap:8px;align-items:center;padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom));background:var(--bar)}
+.composer input{flex:1;min-width:0;border:0;background:var(--field);color:var(--tx);font:inherit;font-size:16px;padding:12px 16px;border-radius:24px;outline:none;box-shadow:var(--shadow)}
+.composer input:focus-visible{box-shadow:0 0 0 2px var(--acc)}
+.composer input::placeholder{color:var(--mut)}
+.send,.mic{width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.send{background:var(--acc);color:#fff}.send:hover{background:var(--acc-d)}
+.mic{background:var(--field);color:var(--mut);box-shadow:var(--shadow)}
+.mic.on{background:#e5484d;color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(229,72,77,.2)}}
+.send:focus-visible,.mic:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10;animation:fade .2s both}
+@keyframes fade{from{opacity:0}}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,100%);max-height:86dvh;overflow:auto;background:var(--sheet);border-radius:18px 18px 0 0;z-index:11;padding:6px 0 calc(14px + env(safe-area-inset-bottom));animation:up .25s ease-out both}
+@keyframes up{from{transform:translate(-50%,40px);opacity:0}}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:6px auto 8px}
+.sh{padding:4px 18px 8px;font-weight:700;font-size:17px}
+.mi{display:flex;width:100%;gap:14px;align-items:center;border:0;background:transparent;color:var(--tx);font:inherit;font-size:15.5px;text-align:left;padding:13px 18px;cursor:pointer;min-height:50px}
+.mi:hover,.mi:focus-visible{background:var(--proof);outline:none}
+.mi .e{font-size:20px;width:26px;text-align:center}
+.mi small{display:block;color:var(--mut);font-size:12.5px}
+.about{padding:0 18px 8px;font-size:14px;line-height:1.5}
+.about h4{margin:12px 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut)}
+.about p{margin:4px 0}
+.about .src{margin:3px 0}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:6px}
+.toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#111b21;color:#fff;font-size:14px;padding:9px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hdr">
+    <div class="avatar" aria-hidden="true"><img src="data:image/png;base64,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" alt=""><span class="dot"></span></div>
+    <div class="who">
+      <div class="name">Gefacalm Coach</div>
+      <div class="status" id="status">online · science · evidence · objections</div>
+    </div>
+    <button class="ib ring" id="ringBtn" aria-label="My progress" title="My progress">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="11" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle id="ringArc" cx="15" cy="15" r="11" fill="none" stroke="#b6e07f" stroke-width="3" stroke-linecap="round" stroke-dasharray="69.1" stroke-dashoffset="69.1" transform="rotate(-90 15 15)"/><text id="ringTx" x="15" y="19" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">0</text></svg>
+    </button>
+    <button class="ib" id="menuBtn" aria-label="Menu" title="Menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </button>
+  </header>
+
+  <main class="chat" id="chat" role="log" aria-live="polite" aria-label="Conversation"></main>
+
+  <div class="suggest" id="suggest" hidden></div>
+  <div class="shortcuts" id="shortcuts">
+    <button class="pill" data-act="topics">📚 Topics</button>
+    <button class="pill" data-act="drill">🎯 Objection drill</button>
+    <button class="pill" data-act="facts">📌 Quick facts</button>
+    <button class="pill" data-act="pitch">🎤 30-sec pitch</button>
+  </div>
+  <form class="composer" id="form" autocomplete="off">
+    <input id="inp" type="text" inputmode="text" enterkeyhint="send" placeholder="Ask anything about Gefacalm…" aria-label="Type your question" maxlength="300">
+    <button type="button" class="mic" id="mic" aria-label="Speak your question" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+    </button>
+    <button type="submit" class="send" id="send" aria-label="Send">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
+    </button>
+  </form>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-label="Menu"></section>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const CATS = [
+  { id: 'sci',  ico: '🔬', name: 'Science & MoA',      blurb: 'Cough reflex, CHS, P2X3, how Gefapixant works' },
+  { id: 'pt',   ico: '🩺', name: 'Patients & Practice', blurb: 'Diagnosis, treatable traits, who to target, dose' },
+  { id: 'ev',   ico: '📊', name: 'Trial Evidence',      blurb: 'COUGH-1, COUGH-2 and the Phase IIIb study' },
+  { id: 'saf',  ico: '⚠️', name: 'Safety & Taste',      blurb: 'AE numbers, taste changes, counselling' },
+  { id: 'obj',  ico: '🗣️', name: 'Doctor Objections',   blurb: 'What doctors say and how to answer with LAER' },
+  { id: 'call', ico: '🎯', name: 'Call Craft',          blurb: 'Openers, probing, pitch, closing' }
+];
+
+const KB = [
+
+/* ───────────── SCIENCE ───────────── */
+{ id:'sci_cc', cat:'sci', q:'What is chronic cough?', s:'What is chronic cough?',
+  keys:'chronic cough definition define duration 8 weeks eight week acute subacute classification meaning what is',
+  a:`Chronic cough = a cough lasting **more than 8 weeks** in adults.
+• Acute – short, usually infective, self-limiting
+• Subacute – follows an infection, symptomatic care
+• **Chronic – beyond 8 weeks**
+It is more than a symptom: it can be anything from a protective reflex to the sign of a serious disease.`,
+  say:`Doctor, once a cough crosses eight weeks it is no longer “just a cough” – it deserves a structured work-up.`,
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136'}, next:['sci_chs','pt_diag','sci_epi'] },
+
+{ id:'sci_reflex', cat:'sci', q:'How does the cough reflex work?', s:'How the cough reflex works',
+  keys:'cough reflex mechanism pathway centre center medulla brainstem glottis nerve vagus how cough happens',
+  a:`• Irritants activate **sensory nerve fibres** in the airway
+• Signals travel to the **cough centre in the medulla oblongata** (brainstem)
+• The brain triggers a sudden, forceful expulsion against a closed glottis – to clear secretions, foreign material and irritants
+Traditional cough suppressants focus on the cough centre.`, next:['sci_p2x3','sci_chs'] },
+
+{ id:'sci_chs', cat:'sci', q:'What is Cough Hypersensitivity Syndrome (CHS)?', s:'What is Cough Hypersensitivity Syndrome?',
+  keys:'cough hypersensitivity syndrome chs hypersensitive nerves neuronal sensitised threshold neuropathic over sensitive',
+  a:`RCC/UCC is increasingly seen as a **disease of cough hypersensitivity** – the airway nerves fire too easily.
+• Airway inflammation → sensory neuron activation → **lowered cough-triggering threshold**
+• So ordinary triggers (cold air, perfume, talking) provoke cough`,
+  say:`Think of a smoke alarm set so sensitive it rings for toast. In these patients the cough nerves are that alarm.`,
+  src:{t:'ref', r:'Chung et al., Nat Rev Dis Primers 2022;8:45'}, next:['sci_pheno','sci_rccucc','sci_moa'] },
+
+{ id:'sci_pheno', cat:'sci', q:'What are the features and triggers of CHS?', s:'CHS features & triggers',
+  keys:'chs features phenotype hypertussia allotussia laryngeal hypersensitivity urge to cough triggers cold air perfume talking singing odour smell',
+  a:`**Phenotypes**
+• **Hypertussia** – exaggerated cough to a normally tussive stimulus
+• **Allotussia** – cough to a stimulus that normally wouldn’t cause cough
+• **Laryngeal hypersensitivity** – throat irritation, tightness
+• **Urge-to-cough** – persistent, distressing sensation before the cough
+**Typical triggers:** talking/singing, cold air, perfume or strong odours.`,
+  say:`Ask: “Does the cough start when your patient talks, steps into cold air, or smells perfume?” If yes – think CHS.`,
+  src:{t:'ref', r:'Chung et al., Nat Rev Dis Primers 2022;8:45'}, next:['sci_chs','c_probe'] },
+
+{ id:'sci_rccucc', cat:'sci', q:'RCC vs UCC – what is the difference?', s:'RCC vs UCC',
+  keys:'rcc ucc refractory unexplained chronic cough difference definition idiopathic persistent despite treatment',
+  a:`• **RCC (Refractory)** – cough persists despite investigation, identifying the underlying disease and guideline-based treatment (e.g. asthma treated, GERD controlled, post-nasal drip treated)
+• **UCC (Unexplained)** – no clear cause found after an extensive, negative work-up
+Both are increasingly seen as manifestations of **Cough Hypersensitivity Syndrome**.`,
+  src:{t:'ref', r:'Smith et al., ERJ Open Res 2020;6(4):00284-2020'}, next:['sci_persist','pt_who'] },
+
+{ id:'sci_persist', cat:'sci', q:'Why does cough persist after treating asthma, GERD or post-nasal drip?', s:'Why cough persists after treating the cause',
+  keys:'why cough persists continue despite treatment asthma gerd reflux post nasal drip ppi not working still coughing refractory',
+  a:`Those conditions explain **many – but not all** – cases. When cough continues, the driver is often **neuronal hypersensitivity**, not the original trigger.
+• Routine, prolonged empirical PPI therapy is not always beneficial
+• Symptoms often overlap with laryngeal hypersensitivity
+• For RCC/UCC the approach is **neuromodulation / P2X3 blockade**`,
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136; Irwin & Madison, N Engl J Med 2025;392:1203-1214'}, next:['pt_traits','sci_moa'] },
+
+{ id:'sci_p2x3', cat:'sci', q:'What is the P2X3 receptor?', s:'What is the P2X3 receptor?',
+  keys:'p2x3 receptor atp ion channel nerve fibre c fibre calcium sodium epithelium damaged purinergic signal',
+  a:`P2X3 receptors sit on airway sensory nerve fibres and play a **central role in sending cough signals to the brain**.
+1. Damaged epithelium releases **ATP**
+2. ATP binds P2X3 → the ion channel opens (Na⁺, Ca²⁺ enter)
+3. The nerve fibre fires → cough signal reaches the brain`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['sci_moa','sci_diff'] },
+
+{ id:'sci_moa', cat:'sci', q:'How does Gefapixant work? (Mechanism of action)', s:'How Gefapixant works (MoA)',
+  keys:'gefapixant mechanism of action moa how does it work p2x3 antagonist first in class non narcotic selective blocks atp gefacalm what is',
+  a:`Gefapixant is a **first-in-class, non-narcotic, selective P2X3 receptor antagonist**.
+• Blocks ATP activation of P2X3 (and P2X2/3) receptors
+• → decreases abnormal sensory signalling
+• → reduced neuronal hypersensitivity
+• → **reduced cough frequency**
+• → improved patient-related outcomes`,
+  say:`Gefapixant doesn’t just mute the cough – it quietens the over-excited nerve signal at its source.`,
+  src:{t:'ref', r:'Markham, Drugs 2022;82(6):691-695'}, next:['sci_diff','ev_design','sci_narcotic'] },
+
+{ id:'sci_diff', cat:'sci', q:'How is Gefapixant different from other cough preparations?', s:'Gefapixant vs other cough medicines',
+  keys:'difference different compare other cough medicines antitussive dextromethorphan antihistamine cetirizine expectorant guaifenesin bronchodilator opioid codeine versus vs',
+  a:`• **Antitussives** (dextromethorphan) – symptomatic suppression, short-term relief
+• **Antihistamines** (cetirizine) – only allergic cough
+• **Expectorants** (guaifenesin) – mucus clearance, not neural cough
+• **Bronchodilators** – asthma-specific
+• **Opioids** (codeine) – central suppression; sedation, dependence
+• **Gefapixant – peripheral P2X3 blockade; a disease-specific approach**`,
+  src:{t:'ref', r:'Markham, Drugs 2022;82(6):691-695; Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['pt_existing','obj_antitussive'] },
+
+{ id:'sci_narcotic', cat:'sci', q:'Is Gefapixant a narcotic or a sedative?', s:'Is it a narcotic / sedative?',
+  keys:'narcotic opioid addiction dependence habit forming sedation sedative drowsy sleepy non narcotic controlled',
+  a:`No – it is a **non-narcotic** P2X3 antagonist that acts on peripheral sensory nerves. Opioids such as codeine suppress cough centrally, with sedation and dependence concerns.
+In the Phase 3 programme the **most common adverse events were taste-related**.`,
+  src:{t:'ref', r:'Markham, Drugs 2022;82(6):691-695; McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['saf_overview','sci_diff'] },
+
+{ id:'sci_epi', cat:'sci', q:'How common is chronic cough – globally and in India?', s:'Prevalence – global & India',
+  keys:'epidemiology prevalence how common global india indian urban rural percent burden numbers statistics',
+  a:`**Global:** cough affects 4–10% of adults; about 12% of those with cough progress to chronic cough, and ~50% of chronic cough patients develop RCC/UCC. Chronic cough affects 6–10% of adults worldwide.
+**India:** cough prevalence **1.7–5.4% (urban)** and **2.4–5.6% (rural)**.
+True RCC prevalence in India is still incompletely characterised; patterns differ from Western cohorts because of environmental and infective exposures.`,
+  src:{t:'ref', r:'Aggarwal et al., Indian J Chest Dis Allied Sci 2006;48:13-22; McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['sci_india','sci_unmet'] },
+
+{ id:'sci_india', cat:'sci', q:'What are the risk factors for chronic cough in India?', s:'Risk factors in India',
+  keys:'risk factors india pollution pm2.5 biomass beedi tobacco smoking tb dust occupational recurrent infection indian patients',
+  a:`• Ambient air pollution (high PM2.5 / PM10 in most cities)
+• Biomass fuel exposure – household cooking smoke
+• Beedi & tobacco use
+• TB & post-TB lung disease
+• Recurrent respiratory infections
+• Occupational dust – construction, textile, mining`,
+  src:{t:'ref', r:'Faruqi & Song, Lung India 2015;32(6):668-9; Sehgal et al., Curr Opin Pulm Med 2024;30(2):156-166'}, next:['sci_tb','pt_diag'] },
+
+{ id:'sci_tb', cat:'sci', q:'Why does TB matter in chronic cough?', s:'TB & post-TB cough',
+  keys:'tuberculosis tb post tb lung disease bronchiectasis fibrosis india 27 percent aafb sputum cough after tb cure',
+  a:`• India carries ~**27% of the global TB burden** – TB stays a key differential
+• Cough can persist **after microbiological cure** (post-TB bronchiectasis, fibrosis, airflow obstruction)
+• Emerging concept: *M. tuberculosis*-associated neuroinflammation may add to cough hypersensitivity
+• Always **exclude active TB** before labelling RCC/UCC`,
+  src:{t:'ref', r:'Sehgal et al., Curr Opin Pulm Med 2024;30(2):156-166; India TB Report 2024 (NTEP)'}, next:['pt_redflags','obj_tb'] },
+
+{ id:'sci_types', cat:'sci', q:'How does RCC/UCC differ from other types of cough?', s:'Cough types compared',
+  keys:'types of cough acute subacute productive asthmatic gerd rcc ucc compare differ treatment approach table',
+  a:`• Acute – infective origin → self-limiting
+• Subacute – post-infection → symptomatic
+• Productive – mucus → treat cause / mucolytics
+• Asthmatic – airway inflammation → ICS / bronchodilator
+• GERD cough – reflux → acid suppression
+• **RCC/UCC – neuronal hypersensitivity → neuromodulation / P2X3 blockade**`,
+  src:{t:'ref', r:'Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['sci_rccucc','sci_moa'] },
+
+{ id:'sci_unmet', cat:'sci', q:'What is the unmet need in chronic cough?', s:'The unmet need',
+  keys:'unmet need burden problem gap symptomatic despite treatment 11 years duration side effects limited data',
+  a:`• Chronic cough affects **6–10% of adults** worldwide
+• Many stay symptomatic despite guideline-based treatment of asthma, GERD, UACS
+• Pivotal-trial patients had coughed for about **11 years** on average
+• Current options (gabapentin, dextromethorphan, low-dose morphine, codeine) carry considerable side effects and/or have limited data
+• Traditional medicines relieve symptoms but don’t address cough hypersensitivity`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['pt_existing','sci_moa'] },
+
+/* ───────────── PATIENTS & PRACTICE ───────────── */
+{ id:'pt_diag', cat:'pt', q:'How do I diagnose chronic cough? (5-step framework)', s:'5-step diagnosis framework',
+  keys:'diagnosis diagnose framework steps work up workup evaluation investigation chest x ray pfa pft feno eosinophils assessment algorithm erS guideline',
+  a:`1. **Confirm** – duration >8 weeks; smoking, ACE-inhibitor, inhaled-irritant history
+2. **Exclude red flags** – lung cancer, active TB, ILD, foreign body
+3. **Evaluate treatable traits** – asthma/eosinophilic bronchitis, upper-airway disease, reflux
+4. **Review exposures** – post-TB status, biomass/pollution, recurrent infections
+5. **Identify CHS features** → label RCC / UCC
+Routine tests: chest X-ray, PFT, FeNO, blood eosinophils.`,
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136; Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['pt_redflags','pt_traits'] },
+
+{ id:'pt_redflags', cat:'pt', q:'Which causes must be excluded before calling it RCC/UCC?', s:'Red flags to exclude first',
+  keys:'red flags exclude serious causes lung cancer tuberculosis interstitial lung disease foreign body aspiration ace inhibitor inhaled powder',
+  a:`Exclude serious or reversible causes first:
+• Lung cancer
+• Active tuberculosis
+• Interstitial lung disease
+• Foreign-body aspiration; aspiration syndromes
+• **ACE inhibitors**
+• Certain inhaled powders causing laryngeal irritation`,
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136; Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['sci_tb','pt_traits'] },
+
+{ id:'pt_traits', cat:'pt', q:'What is the treatable-traits approach?', s:'Treatable-traits approach',
+  keys:'treatable traits airway upper airway reflux inhaled corticosteroid ics nasal steroid rhinitis sinusitis ppi lifestyle feno strategy management',
+  a:`Treat what is treatable **first**:
+• **Airway traits** – ICS for eosinophilic disease, optimise asthma, FeNO-guided care, treat bronchiectasis/chronic airway infection
+• **Upper-airway traits** – intranasal steroids, saline irrigation, allergic rhinitis, chronic rhinosinusitis
+• **Reflux traits** – lifestyle measures; PPI **only** with clinical evidence of reflux; consider non-acid reflux
+If cough persists → RCC/UCC pathway.`,
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136; Parker et al., Thorax 2023;78(Suppl 6):s3-s19; Gibson et al., Chest 2016;149:27-44'}, next:['obj_cause','pt_who'] },
+
+{ id:'pt_existing', cat:'pt', q:'What treatments are used today, and what are their limits?', s:'Current options & their limits',
+  keys:'existing treatments current options gabapentin pregabalin morphine low dose neuromodulators off label limitations side effects dizziness drowsiness constipation',
+  a:`• **Gabapentin** – best-studied neuromodulator; dizziness, fatigue, cognitive slowing, poor long-term tolerability
+• **Pregabalin** – drowsiness, dizziness, weight gain
+• **Low-dose SR morphine** – constipation, somnolence, dependency concerns
+**All of these are off-label for refractory chronic cough.**`,
+  src:{t:'ref', r:'Gibson et al., Chest 2016;149:27-44; Morice et al., Eur Respir J 2020;55:1901136; Visca et al., Eur J Intern Med 2020;81:15-21'}, next:['obj_existing','sci_diff'] },
+
+{ id:'pt_who', cat:'pt', q:'Which patients are right for Gefapixant?', s:'Which patients to target',
+  keys:'which patients right candidate who to prescribe target patient profile indication eligible suitable rcc ucc recent onset',
+  a:`Adults with **RCC or UCC** – cough persisting after proper work-up and treatable-trait management, or no cause found.
+Trial profile: ≥18 yrs, chronic cough ≥1 year, cough severity VAS ≥40 mm, normal chest X-ray/CT.
+**Recent-onset** chronic cough (≤12 months) is covered by the Phase IIIb study.
+It is positioned for RCC/UCC – not for acute, productive, asthmatic or GERD cough.`,
+  say:`Think of the patient who has been through the full work-up, still coughs, and is triggered by cold air, perfume or talking.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['pt_dose','ev_pop'] },
+
+{ id:'pt_dose', cat:'pt', q:'What is the dose of Gefapixant?', s:'Dose',
+  keys:'dose dosage 45 mg twice daily bid how to take administration posology tablet strength regimen',
+  a:`**Gefapixant 45 mg twice daily (BID)** – the dose studied in COUGH-1, COUGH-2 and the Phase IIIb trial, and the dose that showed efficacy in both programmes.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['saf_overview'] },
+
+{ id:'pt_onset', cat:'pt', q:'How quickly does it work, and does the effect last?', s:'Speed of onset & durability',
+  keys:'how quickly onset fast speed when work week 4 sustained durable lasting maintain response time to effect',
+  a:`Improvements in cough frequency, severity and cough-specific quality of life were seen **from week 4** and were **sustained throughout the treatment period** in both COUGH-1 and COUGH-2.
+Primary endpoints were assessed at **12 weeks** (COUGH-1) and **24 weeks** (COUGH-2).`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_primary','ev_qol'] },
+
+{ id:'pt_expect', cat:'pt', q:'How should I set expectations with doctors and patients?', s:'Setting honest expectations',
+  keys:'expectations set expectation honest counsel promise cure realistic message tips positioning',
+  a:`Be honest and specific:
+• Quote results as **group averages**, not promises (62–63% reduction from baseline)
+• Say plainly that **taste changes are common** – better raised up-front than discovered by the patient
+• Position it for **RCC/UCC after work-up**, not as a general cough-syrup replacement
+• Never say “cure” or “no side effects”`, next:['saf_counsel','c_close'] },
+
+/* ───────────── TRIAL EVIDENCE ───────────── */
+{ id:'ev_design', cat:'ev', q:'Tell me about the COUGH-1 and COUGH-2 trials', s:'COUGH-1 & COUGH-2 design',
+  keys:'cough-1 cough1 cough-2 cough2 pivotal phase 3 phase iii trial study design 2044 participants randomised double blind endpoints',
+  a:`Phase 3, multinational, randomised, double-blind, placebo-controlled studies in adults with RCC/UCC.
+• **2,044** participants – COUGH-1 (n=730), COUGH-2 (n=1,314)
+• Arms (1:1:1): Gefapixant **45 mg BID**, **15 mg BID**, placebo
+• Primary endpoint: change in 24-hour cough frequency (coughs/hr, from sound recordings) at **12 wks (COUGH-1)** and **24 wks (COUGH-2)**
+• Secondary: awake cough frequency, LCQ ≥1.3-pt gain, ≥30% cough reduction, CSD and VAS improvements`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_primary','ev_measure','ev_pop'] },
+
+{ id:'ev_primary', cat:'ev', q:'What were the primary efficacy results?', s:'Primary efficacy results',
+  keys:'primary efficacy results 62 63 percent reduction cough frequency placebo 18.5 14.6 p value confidence interval outcome results data',
+  a:`Gefapixant **45 mg BID**:
+• **COUGH-1 (12 wks):** 62% reduction in 24-h cough frequency vs baseline; **18.5%** relative reduction vs placebo (95% CI 0.9–32.9; p=0.041)
+• **COUGH-2 (24 wks):** 63% reduction vs baseline; **14.6%** relative reduction vs placebo (95% CI 1.4–26.1; p=0.031)`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_responders','ev_base','obj_small'] },
+
+{ id:'ev_responders', cat:'ev', q:'Responder analysis – how many patients improved substantially?', s:'Responder analysis',
+  keys:'responder analysis responders 30 percent 50 percent 70 percent proportion patients improved threshold stricter',
+  a:`Proportion of patients on 45 mg BID with a reduction in 24-h cough frequency (COUGH-1 and COUGH-2):
+• **COUGH-1 (12 wks):** ≥30% – 69.9% · ≥50% – 54.1% · ≥70% – 33.9%
+• **COUGH-2 (24 wks):** ≥30% – 72.9% · ≥50% – 57.6% · ≥70% – 38.2%
+The advantage over placebo **widens with stricter thresholds**: COUGH-1 4.0% → 7.8% → 8.2%; COUGH-2 6.0% → 7.4% → 7.9%.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_qol','ev_base'] },
+
+{ id:'ev_qol', cat:'ev', q:'Does it improve quality of life?', s:'Quality-of-life results (LCQ)',
+  keys:'quality of life qol lcq leicester cough questionnaire secondary endpoint 1.3 points improvement patient reported',
+  a:`A greater proportion of patients on 45 mg BID achieved a clinically meaningful **≥1.3-point rise in the Leicester Cough Questionnaire (LCQ)** total score.
+Improvements in cough frequency, severity and cough-specific QoL were seen **from week 4** and sustained in both studies.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['pt_onset','ev_iiib'] },
+
+{ id:'ev_measure', cat:'ev', q:'How was cough measured – is it objective?', s:'How cough was measured',
+  keys:'objective measurement how measured cough counting sound recording 24 hour recording vas diary lcq subjective patient reported endpoint',
+  a:`The primary endpoint used **24-hour cough frequency from sound recordings** (objective coughs per hour), alongside patient-reported tools:
+• Cough Severity **VAS** (100 mm)
+• **Leicester Cough Questionnaire** (LCQ)
+• **Cough Severity Diary** (CSD)`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['obj_placebo','ev_primary'] },
+
+{ id:'ev_pop', cat:'ev', q:'Who was in the trials – are they like my patients?', s:'Trial population',
+  keys:'trial population patients included inclusion criteria who enrolled participants indian patients similar real world like my patients',
+  a:`• Adults ≥18 yrs with an RCC/UCC diagnosis
+• Chronic cough ≥1 year (average ≈ **11 years**)
+• Cough severity VAS ≥40 mm at screening and baseline
+• Normal chest X-ray or CT (within 5 years, after cough onset)
+These were long-standing, difficult-to-treat patients.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_iiib','pt_who'] },
+
+{ id:'ev_iiib', cat:'ev', q:'What is the Phase IIIb study?', s:'Phase IIIb – recent-onset cough',
+  keys:'phase iiib 3b recent onset chronic cough rocc 12 months 415 participants study design lung 2023',
+  a:`Phase 3b, randomised, double-blind, parallel-group, placebo-controlled study in **recent-onset (≤12 months)** RCC/UCC.
+• **N = 415** – Gefapixant 45 mg BID (n=206) vs placebo (n=209)
+• Primary: change in total **LCQ** score from baseline to Week 12
+• Secondary: change in cough severity VAS at Week 12
+• No substantial chest-imaging abnormality contributing to cough`,
+  src:{t:'ref', r:'Lung 2023;201(2):111-118'}, next:['ev_iiib_res'] },
+
+{ id:'ev_iiib_res', cat:'ev', q:'Phase IIIb efficacy results', s:'Phase IIIb efficacy results',
+  keys:'phase iiib results lcq 0.75 difference week 12 vas 6.92 csd 0.47 recent onset efficacy 4.34 3.59 p 0.034',
+  a:`At Week 12 (45 mg BID vs placebo):
+• **LCQ total score** – mean change 4.34 vs 3.59; difference **0.75** (95% CI 0.06–1.44), **p=0.034** → superior to placebo
+• **Cough severity VAS** – difference −6.92 mm (95% CI −11.88 to −1.97)
+• **CSD total score** – difference −0.47 (95% CI −0.88 to −0.06)`,
+  src:{t:'ref', r:'Lung 2023;201(2):111-118'}, next:['saf_overview','saf_disc'] },
+
+{ id:'ev_base', cat:'ev', q:'62% vs 18.5% – which number should I quote?', s:'62% vs 18.5% – which to quote?',
+  keys:'which number quote 62 18.5 baseline versus placebo adjusted difference explain relative reduction confusing percent',
+  a:`Both are true – they answer different questions:
+• **62–63%** = fall from the patient’s **own baseline** (what the patient feels)
+• **18.5% / 14.6%** = extra relative reduction **versus placebo** (what the drug adds)
+Cough trials see a large placebo response, so **quote both** and never hide the placebo-adjusted figure. Doctors respect transparency.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['obj_small','ev_responders'] },
+
+{ id:'ev_30s', cat:'ev', q:'Give me a 30-second evidence summary', s:'30-second evidence summary',
+  keys:'summary 30 second evidence short recap elevator quick overview trial data',
+  a:`Your 30-second evidence line:`,
+  say:`In two Phase 3 trials of over 2,000 patients with refractory or unexplained chronic cough, Gefapixant 45 mg twice daily reduced 24-hour cough frequency by 62–63% from baseline, with an 18.5% and 14.6% relative reduction versus placebo, and gains in cough-specific quality of life from week 4. The most common side effects were taste-related; serious adverse events were infrequent.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_primary','c_pitch'] },
+
+/* ───────────── SAFETY ───────────── */
+{ id:'saf_overview', cat:'saf', q:'What is the safety profile of Gefapixant?', s:'Safety profile overview',
+  keys:'safety profile adverse events ae side effects tolerability 52 weeks treatment related serious overview risks',
+  a:`52-week data, 45 mg BID vs placebo (COUGH-1 | COUGH-2):
+• Taste-related AEs: **59.3% | 68.9%** vs 4.5% | 8.3%
+• Treatment-related AEs: 65.0% | 70.9% vs 19.3% | 21.1%
+• Serious AEs: 5.3% | 5.7% vs 5.8% | 5.8% – similar to placebo
+Most taste AEs were **mild to moderate**; AEs with 45 mg were most commonly taste-related and **dose-dependent**.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['saf_taste','saf_serious','obj_taste'] },
+
+{ id:'saf_taste', cat:'saf', q:'How common are taste side effects?', s:'Taste side effects – the numbers',
+  keys:'taste side effects dysgeusia ageusia hypogeusia taste disorder altered taste loss of taste metallic bitter percent how common frequency',
+  a:`On 45 mg BID (COUGH-1 | COUGH-2):
+• Dysgeusia **36.2% | 43.9%**
+• Ageusia **13.6% | 15.2%**
+• Hypogeusia **5.3% | 13.6%**
+• Taste disorder **9.9% | 8.4%**
+Taste AEs are **dose-dependent** – any taste-related AE with 15 mg: 12.7% | 20.1%.
+Phase IIIb (12 wks): dysgeusia 32.0% vs 3.3%, ageusia 11.7% vs 0%, hypogeusia 10.7% vs 0.5%.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['saf_counsel','obj_taste'] },
+
+{ id:'saf_counsel', cat:'saf', q:'How should patients be counselled about taste changes?', s:'Counselling patients on taste changes',
+  keys:'counsel counselling patient taste change advice what to tell patients manage expectation reassure follow up',
+  a:`Suggested doctor–patient conversation, based on the trial data:
+• Tell patients **up-front** that taste may be altered or reduced
+• Most taste events in trials were **mild to moderate**
+• Review at follow-up; discuss if it is bothersome
+• Don’t promise it will vanish – the trials report most events as mild to moderate`, next:['obj_taste','pt_expect'] },
+
+{ id:'saf_serious', cat:'saf', q:'Are there serious safety concerns?', s:'Serious adverse events',
+  keys:'serious adverse events sae serious safety deaths concerns risk severe hospitalisation',
+  a:`• **COUGH-1/2 (52 wks):** serious AEs 5.3% and 5.7% on 45 mg vs 5.8% and 5.8% on placebo
+• **Phase IIIb (12 wks):** serious AEs 1.5% (45 mg) vs 1.9% (placebo); **no serious drug-related AEs** in either arm
+AEs with 45 mg were most commonly taste-related.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['saf_disc','saf_long'] },
+
+{ id:'saf_disc', cat:'saf', q:'How many patients stopped treatment because of side effects?', s:'Discontinuations due to AEs',
+  keys:'discontinuation discontinued stopped dropout drop out withdraw quit treatment because of adverse events tolerability',
+  a:`Phase IIIb (12 weeks), 45 mg BID vs placebo:
+• Discontinued due to any AE: **11.2%** vs 1.9%
+• Due to a drug-related AE: **8.7%** vs 0.5%
+• Due to a serious AE: 0% vs 0.5%
+The deck states discontinuations due to AEs were higher with Gefapixant – **be upfront about it**.`,
+  src:{t:'ref', r:'Lung 2023;201(2):111-118'}, next:['obj_taste','saf_counsel'] },
+
+{ id:'saf_long', cat:'saf', q:'Is there long-term safety data?', s:'Long-term safety (52 weeks)',
+  keys:'long term safety 52 weeks one year duration of treatment how long continue chronic use extended',
+  a:`COUGH-1 and COUGH-2 report adverse events **up to 52 weeks**: serious AEs were similar to placebo, and the most common events were taste-related.`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['obj_long','saf_overview'] },
+
+/* ───────────── DOCTOR OBJECTIONS ───────────── */
+{ id:'obj_small', cat:'obj', q:'“The benefit over placebo is only 15–18%. Is that clinically meaningful?”', s:'“Benefit over placebo is small”',
+  keys:'small effect size placebo adjusted modest benefit clinically meaningful 18 15 percent not impressive marginal low efficacy weak effect only',
+  obj:`The benefit over placebo is only 15–18%. Is that clinically meaningful?`,
+  ack:`It’s a fair, honest read of the placebo-adjusted numbers – don’t dodge it.`,
+  explore:`“What kind of reduction would matter to a patient who has coughed for years?”`,
+  points:[`Patients feel the fall from **their own baseline: 62–63%**`,`The gap vs placebo **widens with stricter responder thresholds** (up to ~8%)`,`QoL (LCQ ≥1.3 pts) improved, from **week 4**`,`Avg cough duration ≈ **11 yrs** and all current options are off-label`],
+  say:`That’s a fair point, Doctor – and I won’t hide the placebo-adjusted figures: 18.5% and 14.6%. What patients experience is a 62 to 63 percent fall from their own baseline, and the advantage over placebo grows as you look at stricter responders – about 8% more patients reaching a 70% reduction. These were patients coughing for around 11 years on average, where every existing option is off-label. Does that help frame it?`,
+  proof:[`McGarvey, Lancet 2022 – 62%/63% from baseline; 18.5% (p=0.041), 14.6% (p=0.031) vs placebo`,`McGarvey, Lancet 2022 – gap grows 4.0→8.2% (COUGH-1), 6.0→7.9% (COUGH-2)`,`McGarvey, Lancet 2022 – LCQ ≥1.3-pt gain; benefit from week 4`,`McGarvey, Lancet 2022 – mean duration ≈11 years`],
+  avoid:`Don’t hide the placebo-adjusted number or call the effect “dramatic”.`,
+  hit:[{t:'Mentioned the placebo-adjusted figure',re:/placebo|18\.5|14\.6/i},{t:'Reframed with baseline / responders',re:/baseline|62|63|respond|stricter|70/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['ev_base','ev_responders','obj_placebo'] },
+
+{ id:'obj_taste', cat:'obj', q:'“Taste side effects will make my patients stop the drug.”', s:'“Taste side effects – patients will quit”',
+  keys:'taste side effects patients will stop quit discontinue dysgeusia tolerability bad taste metallic compliance adherence dropout concern objection',
+  obj:`Taste side effects will make my patients stop the drug.`,
+  ack:`Agree that taste change is the main side effect – never minimise it.`,
+  explore:`“How much does the cough affect your patient’s life compared with how much taste change they could accept?”`,
+  points:[`Taste-related AEs **59–69%** on 45 mg (vs 4.5–8.3% placebo)`,`**Mostly mild to moderate** and **dose-dependent**`,`Serious AEs **similar to placebo** (5.3–5.7% vs 5.8%)`,`Set the expectation **up-front** so it isn’t a surprise`],
+  say:`You’re right, Doctor – taste change is the main side effect: roughly 6 to 7 in 10 patients on 45 mg reported a taste-related event in the Phase 3 trials, mostly mild to moderate and dose-dependent, with serious events similar to placebo. The real question is for the patient who has coughed for years with nothing working – if the expectation is set from day one, is that a trade-off worth offering them?`,
+  proof:[`McGarvey, Lancet 2022 – taste AEs 59.3% | 68.9% vs 4.5% | 8.3%; majority mild-moderate`,`McGarvey, Lancet 2022 – serious AEs 5.3% | 5.7% vs 5.8% | 5.8%`,`Lung 2023 – Phase IIIb discontinuation due to AEs 11.2% vs 1.9%`],
+  avoid:`Never say taste effects are “rare” or “minor”, or that there are “no side effects”.`,
+  hit:[{t:'Used the taste numbers (≈60–70%)',re:/59|60|68|69|70|6 in 10|7 in 10|percent|%/i},{t:'Said mild-moderate / dose-dependent',re:/mild|moderate|dose/i},{t:'Talked about setting expectations',re:/expect|counsel|upfront|up-front|tell|inform|explain|prepare/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['saf_taste','saf_counsel','saf_disc'] },
+
+{ id:'obj_existing', cat:'obj', q:'“I already use gabapentin / pregabalin / low-dose morphine. Why switch?”', s:'“I already use gabapentin / pregabalin”',
+  keys:'already use gabapentin pregabalin morphine amitriptyline why switch neuromodulator existing therapy guideline cheaper working fine satisfied current treatment',
+  obj:`I already use gabapentin, pregabalin or low-dose morphine. Why should I switch?`,
+  ack:`Those are the options doctors have had to use – respect the experience.`,
+  explore:`“How long do patients stay on them, and what do they tell you about drowsiness, dizziness or constipation?”`,
+  points:[`All are **off-label** for refractory chronic cough`,`Limits: dizziness, fatigue, cognitive slowing, drowsiness, constipation, dependency concerns`,`Gefapixant is **first-in-class**, targets the **P2X3 pathway** behind cough hypersensitivity`,`Studied in **2,044** patients (COUGH-1/2)`],
+  say:`Those are the options we’ve all had to rely on, Doctor – and gabapentin is the best studied of them. But all of them are used off-label for refractory chronic cough, and they come with dizziness, fatigue, drowsiness, or with morphine, constipation and dependency concerns. Gefapixant is first-in-class and targets the P2X3 pathway that drives cough hypersensitivity, studied in over two thousand patients, with taste change as its main trade-off. Would you consider it for the patient who hasn’t done well on those?`,
+  proof:[`Visca, Eur J Intern Med 2020 – all agents used are off-label for CRC`,`Gibson, Chest 2016; Morice 2020 – limitations of gabapentin, pregabalin, low-dose morphine`,`Markham, Drugs 2022 – Gefapixant: peripheral P2X3 blockade`],
+  avoid:`Don’t disparage the doctor’s current choice or claim superiority – there is no head-to-head data in the trials.`,
+  hit:[{t:'Noted they are off-label',re:/off[- ]?label/i},{t:'Named their side effects',re:/dizz|drows|sedat|constip|depend|cognitive|fatigue|tolerab/i},{t:'Explained the P2X3 / first-in-class approach',re:/p2x3|first[- ]in[- ]class|mechanism|target|source/i}],
+  src:{t:'ref', r:'Gibson et al., Chest 2016;149:27-44; Morice et al., Eur Respir J 2020;55:1901136; Visca et al., Eur J Intern Med 2020;81:15-21'}, next:['pt_existing','sci_diff'] },
+
+{ id:'obj_fda', cat:'obj', q:'“It wasn’t approved by the FDA.”', s:'“It wasn’t approved by the FDA”',
+  keys:'fda not approved united states us rejected regulatory approval status europe japan switzerland approved where',
+  obj:`It wasn’t approved by the FDA.`,
+  ack:`Don’t get defensive – it’s a legitimate question.`,
+  explore:`“Is it the approval status that concerns you, or the evidence behind it?”`,
+  points:[`Approved in **Japan, the European Union and Switzerland** for RCC/UCC`,`Backed by the **COUGH-1/2 Phase 3 programme (2,044 patients)** and a Phase IIIb study`,`Offer to walk through the **actual trial data**`],
+  say:`Good that you raised it, Doctor. Gefapixant is approved in Japan, the European Union and Switzerland for refractory or unexplained chronic cough, backed by the COUGH-1 and COUGH-2 Phase 3 trials in over two thousand patients, plus a Phase IIIb study. I’d be happy to walk you through the data so you can judge the evidence for yourself.`,
+  proof:[`Markham, Drugs 2022 – approved in Japan, EU and Switzerland for RCC/UCC`,`McGarvey, Lancet 2022 – COUGH-1/2, n=2,044`,`Lung 2023 – Phase IIIb, n=415`],
+  avoid:`Don’t speculate about approvals in other countries.`,
+  hit:[{t:'Named where it is approved',re:/japan|europe|\beu\b|switzerland|approved/i},{t:'Redirected to the evidence / data',re:/data|evidence|trial|cough-?1|cough-?2/i}],
+  src:{t:'ref', r:'Markham, Drugs 2022;82(6):691-695'}, next:['ev_design','obj_new'] },
+
+{ id:'obj_cost', cat:'obj', q:'“It will be too expensive for my patients.”', s:'“Too expensive for my patients”',
+  keys:'expensive cost price costly afford cheaper cheap money pricing too high patients cannot afford budget reimbursement',
+  obj:`It will be too expensive for my patients.`,
+  ack:`Cost is a real consideration – agree before you respond.`,
+  explore:`“Is it the monthly cost, or whether the benefit justifies it, that worries you?”`,
+  points:[`Position for the **right patient**: RCC/UCC after full work-up`,`Burden is high: avg **≈11 yrs** of cough, multiple trials of other medicines`,`Benefits: cough reduction, **LCQ** gains from **week 4**`,`Ask which patients they would **start with**`],
+  say:`Cost is a real consideration, Doctor. That’s why I’d position Gefapixant only for the patient with refractory or unexplained chronic cough after a full work-up – someone who has often coughed for years, tried several medicines and has a poor quality of life. For them, benefits showed from week 4 in cough frequency and cough-specific quality of life. Which of your patients would be the first you’d consider?`,
+  proof:[`McGarvey, Lancet 2022 – long burden; other options limited by side effects`,`McGarvey, Lancet 2022 – benefits from week 4`],
+  avoid:`Don’t quote prices or reimbursement – keep the focus on the right patient and the benefit shown.`,
+  hit:[{t:'Narrowed to the right patient',re:/right patient|rcc|ucc|refractory|unexplained|work[- ]?up|select|suitable/i},{t:'Referred to burden / benefit',re:/years|burden|quality|benefit|week 4|lcq/i}], next:['pt_who','ev_qol'] },
+
+{ id:'obj_cause', cat:'obj', q:'“I treat the cause first – GERD, asthma, rhinitis, a PPI trial.”', s:'“I treat the cause first (GERD/asthma)”',
+  keys:'treat cause first gerd reflux asthma rhinitis ppi trial empirical underlying disease work up first treatable traits do not need',
+  obj:`I treat the underlying cause first – GERD, asthma, rhinitis, a PPI trial.`,
+  ack:`Agree strongly – that’s exactly the guideline path.`,
+  explore:`“What proportion of your chronic cough patients still cough after that?”`,
+  points:[`Treatable traits **first**; stop ACE inhibitors / smoking`,`PPI only with **evidence of reflux** – prolonged empirical PPI isn’t always beneficial`,`Gefapixant is for **persistent (RCC) or unexplained (UCC)** cough after that`,`Driver is **neuronal hypersensitivity** → P2X3 blockade`],
+  say:`Absolutely, Doctor – that’s the right path: treat the treatable traits first and remove risk factors like ACE inhibitors and smoking. Gefapixant is for the patient who is still coughing after that work-up. Prolonged empirical PPI therapy isn’t always beneficial, and the problem is then nerve hypersensitivity – which is what P2X3 blockade targets. Which of your patients are still coughing after all that?`,
+  proof:[`Morice, Eur Respir J 2020; Parker, Thorax 2023 – etiologies explain many but not all cases; RCC/UCC → neuronal hypersensitivity`,`Morice, Eur Respir J 2020; Parker, Thorax 2023 – ERS / treatable-traits approach`],
+  avoid:`Don’t suggest skipping the work-up, or using it for acute/productive cough.`,
+  hit:[{t:'Agreed treating the cause comes first',re:/absolutely|agree|right|correct|first|guideline|work[- ]?up|treatable/i},{t:'Said it is for persistent / unexplained cough',re:/still|persist|refractory|unexplained|rcc|ucc|despite/i},{t:'Linked to hypersensitivity / P2X3',re:/p2x3|hypersens|neuro|nerve/i}],
+  src:{t:'ref', r:'Morice et al., Eur Respir J 2020;55:1901136; Parker et al., Thorax 2023;78(Suppl 6):s3-s19'}, next:['pt_traits','sci_persist'] },
+
+{ id:'obj_tb', cat:'obj', q:'“My cough patients mostly have TB, post-TB or pollution cough. Will this work?”', s:'“My patients have TB / pollution cough”',
+  keys:'tb tuberculosis post tb pollution biomass indian patients mostly infection cough will it work india different dust smoke',
+  obj:`Most of my chronic cough patients have TB, post-TB lung disease or pollution-related cough. Will Gefapixant work for them?`,
+  ack:`That is exactly the Indian reality – and active TB must be excluded first.`,
+  explore:`“Among your patients with cough over 8 weeks, how many are still coughing after TB is excluded or cured?”`,
+  points:[`**Exclude active TB** before labelling RCC/UCC`,`Cough can persist **after microbiological cure** (post-TB lung disease)`,`Pollution/biomass inflammation → sensory nerve activation → **lowered cough threshold**`,`Target: persistent cough **after work-up** with CHS features`],
+  say:`That is exactly the Indian reality, Doctor – and active TB must always be excluded first. But cough can persist after microbiological cure because of post-TB lung disease, and airway inflammation from pollution or biomass smoke can lower the cough threshold. When cough persists after the work-up and treating the cause, cough hypersensitivity is the likely driver – that’s the patient group for Gefapixant. Shall I show you how I’d identify them?`,
+  proof:[`Sehgal, Curr Opin Pulm Med 2024 – ~27% global TB burden; cough may persist after cure; mechanism airway inflammation → neuronal activation`,`Sehgal, Curr Opin Pulm Med 2024 – risk factors and diagnostic framework`],
+  avoid:`Don’t claim Gefapixant treats TB or post-TB lung disease, and never skip TB exclusion.`,
+  hit:[{t:'Said exclude active TB first',re:/exclude|rule out|active tb|first/i},{t:'Mentioned persistence after cure / post-TB',re:/post[- ]?tb|after (cure|treatment)|persist|beyond/i},{t:'Linked to hypersensitivity',re:/hypersens|threshold|nerve|neuro|p2x3/i}],
+  src:{t:'ref', r:'Sehgal et al., Curr Opin Pulm Med 2024;30(2):156-166; India TB Report 2024 (NTEP)'}, next:['sci_tb','pt_redflags'] },
+
+{ id:'obj_new', cat:'obj', q:'“It’s a new molecule – I’ll wait for real-world experience.”', s:'“New molecule – I’ll wait”',
+  keys:'new molecule new drug wait real world experience not familiar never used before data limited early experience hesitant',
+  obj:`It’s a new molecule. I’ll wait for more real-world experience.`,
+  ack:`Understandable – doctors want to see data before they start.`,
+  explore:`“What evidence would give you the confidence to try it?”`,
+  points:[`**2,044 patients** in the COUGH-1/2 Phase 3 programme`,`Safety reported to **52 weeks**`,`Phase IIIb in **recent-onset** cough (n=415)`,`Approved in Japan, EU, Switzerland`],
+  say:`Understandable, Doctor – it’s sensible to see the data first. Gefapixant has a robust Phase 3 programme: over 2,000 patients in COUGH-1 and COUGH-2 with safety reported to 52 weeks, plus a Phase IIIb in recent-onset cough, and it’s approved in Japan, the EU and Switzerland. Which part of the evidence would give you the confidence – may I walk you through it?`,
+  proof:[`McGarvey, Lancet 2022 – COUGH-1/2 (n=2,044)`,`McGarvey, Lancet 2022 – AEs to 52 weeks`,`Lung 2023 – Phase IIIb (n=415)`,`Markham, Drugs 2022 – approvals`],
+  avoid:`Stick to the trial data – don’t claim real-world data.`,
+  hit:[{t:'Quoted trial size / programme',re:/2,?044|2000|2,000|phase|cough-?1|cough-?2|trial/i},{t:'Mentioned safety follow-up or approvals',re:/52|safety|approved|japan|europe|eu\b/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['ev_design','obj_fda'] },
+
+{ id:'obj_15mg', cat:'obj', q:'“Can I use 15 mg to avoid the taste effects?”', s:'“Can I use 15 mg to avoid taste effects?”',
+  keys:'15 mg lower dose reduce dose avoid taste half dose split tablet titrate low dose use 15',
+  obj:`Can I just use 15 mg to avoid the taste effects?`,
+  ack:`Acknowledge the logic – taste effects are indeed dose-dependent.`,
+  explore:`“What is the main worry – taste at 45 mg or whether it will be tolerated?”`,
+  points:[`Taste AEs: **15 mg 12.7% | 20.1%** vs **45 mg 59.3% | 68.9%**`,`The dose studied in **Phase IIIb and used in the evidence** is **45 mg BID**`,`Don’t advise other dosing – 45 mg BID is the studied dose`],
+  say:`You’re right that taste events are dose-dependent, Doctor – about 13 to 20 percent on 15 mg versus 59 to 69 percent on 45 mg. But the dose that showed efficacy in COUGH-1, COUGH-2 and the Phase IIIb study is 45 mg twice daily – that is the dose the evidence supports.`,
+  proof:[`McGarvey, Lancet 2022 – taste-related AEs by dose`,`McGarvey, Lancet 2022 – 45 mg BID`],
+  avoid:`Don’t recommend 15 mg or splitting tablets – 45 mg BID is the studied dose.`,
+  hit:[{t:'Acknowledged dose-dependence',re:/dose[- ]?dependent|dose|13|20|12\.7|20\.1/i},{t:'Stuck to the studied 45 mg BID dose',re:/45|studied|evidence/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['saf_taste','pt_dose'] },
+
+{ id:'obj_placebo', cat:'obj', q:'“Cough trials have a huge placebo response – how do I know it is the drug?”', s:'“How do I know it isn’t just placebo?”',
+  keys:'placebo response high how do i know it is the drug trial design blinded subjective cough count objective credible evidence reliable',
+  obj:`Cough trials have a huge placebo response. How do I know it’s the drug?`,
+  ack:`A sharp, informed question – compliment it genuinely.`,
+  explore:`“Which part of the trial design would you like me to walk through?”`,
+  points:[`**Randomised, double-blind, placebo-controlled**`,`Primary endpoint: **objective 24-h cough counts** from sound recordings`,`Beat placebo in both trials (**p=0.041** and **p=0.031**)`,`Gap vs placebo **widens at stricter thresholds**; Phase IIIb LCQ superior (p=0.034)`],
+  say:`That’s exactly the right question, Doctor. These were randomised, double-blind, placebo-controlled studies, and the primary endpoint was objective – 24-hour cough counts from sound recordings, not just a diary. Gefapixant beat placebo in both trials, the gap grows as you use stricter responder thresholds, and the Phase IIIb confirmed benefit on quality of life in recent-onset cough.`,
+  proof:[`McGarvey, Lancet 2022 – design and 24-h sound-recording endpoint`,`McGarvey, Lancet 2022 – p=0.041 / p=0.031`,`McGarvey, Lancet 2022 – widening gap`,`Lung 2023 – LCQ difference 0.75, p=0.034`],
+  avoid:`Don’t claim the placebo response is “small”.`,
+  hit:[{t:'Mentioned randomised / double-blind design',re:/random|double[- ]?blind|placebo[- ]controlled|blind/i},{t:'Mentioned objective cough counting',re:/objective|24[- ]?h|24 hour|recording|count/i},{t:'Quoted a p-value or result',re:/0\.0\d|p ?=|p-value|significant|18\.5|14\.6/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['ev_measure','ev_primary'] },
+
+{ id:'obj_long', cat:'obj', q:'“How long can I keep the patient on it? What about long-term safety?”', s:'“Long-term use & safety?”',
+  keys:'long term use how long duration treatment continue stop long term safety chronic therapy years withdrawal',
+  obj:`How long can I keep the patient on it? What about long-term safety?`,
+  ack:`A responsible question – chronic cough is a long-term problem.`,
+  explore:`“What follow-up period would you want to see data for?”`,
+  points:[`AEs reported up to **52 weeks** in COUGH-1/2`,`Serious AEs **5.3–5.7%** vs 5.8% placebo`,`Taste AEs most common`,`Phase IIIb (12 wks): serious AEs <2%, taste events again most common`],
+  say:`That’s a responsible question, Doctor. In COUGH-1 and COUGH-2, adverse events were followed up to 52 weeks – serious events were similar to placebo at about 5 to 6 percent, and taste change was the most common event.`,
+  proof:[`McGarvey, Lancet 2022 – 52-week AE summary`],
+  avoid:`Don’t extrapolate beyond the 52-week data.`,
+  hit:[{t:'Cited 52-week data',re:/52|year|long[- ]?term/i},{t:'Mentioned serious AEs / taste events',re:/serious|taste|placebo/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['saf_long','saf_serious'] },
+
+{ id:'obj_symptom', cat:'obj', q:'“Chronic cough isn’t serious – it’s just a nuisance.”', s:'“Chronic cough is just a nuisance”',
+  keys:'not serious nuisance just a cough minor trivial symptom not important only cough does not need treatment benign',
+  obj:`Chronic cough isn’t serious – it’s just a nuisance.`,
+  ack:`Agree it is often not dangerous once serious causes are excluded.`,
+  explore:`“How do your chronic-cough patients describe their sleep, work and social life?”`,
+  points:[`Cough is **not trivial**: avg **≈11 years** of cough in the pivotal trials`,`Patients stay **symptomatic despite guideline treatment**`,`Cough-specific **QoL (LCQ)** is a key outcome, improved with Gefapixant`],
+  say:`I’d agree it’s often not dangerous once serious causes are excluded, Doctor – but it isn’t trivial. In the Phase 3 trials, patients had been coughing for around eleven years on average, and many stay symptomatic despite guideline-based treatment. That’s why cough-specific quality of life was a key endpoint. How do your own chronic-cough patients describe their sleep and daily life?`,
+  proof:[`McGarvey, Lancet 2022 – 11-year average; symptomatic despite treatment`,`McGarvey, Lancet 2022 – LCQ gains`],
+  avoid:`Don’t overstate the risks of cough (no scare tactics).`,
+  hit:[{t:'Agreed first, then reframed',re:/agree|right|fair|understand|true/i},{t:'Used the duration / burden / QoL facts',re:/11|years|quality|lcq|burden|symptomatic|sleep/i}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923'}, next:['sci_unmet','ev_qol'] },
+
+{ id:'obj_antitussive', cat:'obj', q:'“A good cough syrup / dextromethorphan / codeine works fine for my patients.”', s:'“Cough syrups already work for my patients”',
+  keys:'cough syrup dextromethorphan codeine antitussive works fine already satisfied suppressant simple cheap syrup works',
+  obj:`A good cough syrup, dextromethorphan or codeine works fine for my patients.`,
+  ack:`For acute or post-infectious cough they do have a place – say so.`,
+  explore:`“Which patients keep coming back because the syrups stop working?”`,
+  points:[`Antitussives: **symptomatic, short-term** relief`,`Codeine/opioids: central suppression – **sedation, dependence**`,`RCC/UCC is **neuronal hypersensitivity** – needs a **disease-specific** approach`,`Gefapixant acts **peripherally** via P2X3`],
+  say:`For acute and post-infectious cough they certainly have a place, Doctor. But in chronic cough driven by hypersensitivity, relief from antitussives tends to be short-term, and codeine brings sedation and dependence concerns. Gefapixant works peripherally on the P2X3 pathway – a disease-specific approach. Which patients of yours keep returning because the syrups stop working?`,
+  proof:[`Markham, Drugs 2022 – class comparison table`,`Visca, Eur J Intern Med 2020 – options for acute vs chronic cough`],
+  avoid:`Don’t criticise short-term use of syrups in acute cough.`,
+  hit:[{t:'Acknowledged where syrups work',re:/acute|post[- ]?infect|place|short[- ]?term|agree/i},{t:'Contrasted with disease-specific P2X3 approach',re:/p2x3|peripheral|disease[- ]specific|hypersens|mechanism/i}],
+  src:{t:'ref', r:'Markham, Drugs 2022;82(6):691-695; Visca et al., Eur J Intern Med 2020;81:15-21'}, next:['sci_diff','obj_existing'] },
+
+{ id:'obj_niche', cat:'obj', q:'“I rarely see chronic cough patients – not many candidates.”', s:'“I rarely see chronic cough patients”',
+  keys:'rarely see few patients not many candidates no chronic cough patients in my clinic small number low volume',
+  obj:`I rarely see chronic cough patients. There aren’t many candidates.`,
+  ack:`Plausible – these patients often don’t announce themselves.`,
+  explore:`“In last week’s clinic, who had a cough for more than 8 weeks and a normal chest X-ray?”`,
+  points:[`Chronic cough affects **6–10% of adults**; ~**half** of chronic cough ends up RCC/UCC`,`They present as **“recurring” or “post-viral” cough**`,`Quick screen: >8 weeks, normal chest imaging, triggers like **cold air, perfume, talking**`],
+  say:`That’s common, Doctor, because these patients often don’t announce themselves – they come back as “recurring cough” or are told it’s post-viral. Globally 6 to 10 percent of adults have chronic cough, and about half of those end up refractory or unexplained. A quick screen: cough over 8 weeks, normal chest X-ray, and triggers like cold air, perfume or talking. In last week’s clinic, who would have fit?`,
+  proof:[`Aggarwal 2006 – global prevalence funnel`,`McGarvey, Lancet 2022 – 6–10% of adults`,`Chung, Nat Rev Dis Primers 2022 – triggers`],
+  avoid:`Don’t inflate Indian prevalence – the deck says true RCC prevalence in India is incompletely characterised.`,
+  hit:[{t:'Gave prevalence context',re:/6|10|percent|%|prevalence|common/i},{t:'Gave a quick patient screen',re:/8 weeks|x[- ]?ray|cold|perfume|talking|trigger/i},{t:'Asked about a real patient',re:/\?/}],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Chung et al., Nat Rev Dis Primers 2022;8:45'}, next:['sci_epi','sci_pheno'] },
+
+{ id:'obj_busy', cat:'obj', q:'“I’m busy – just leave the literature.”', s:'“I’m busy – leave the literature”',
+  keys:'busy no time just leave literature leave the material send me literature not interested come later in a hurry short time brush off',
+  obj:`I’m busy right now – just leave the literature.`,
+  ack:`Respect the time pressure – be brief and don’t push.`,
+  explore:`One sharp, patient-based question that earns 30 more seconds.`,
+  points:[`Offer **one question**, not a presentation`,`Use a **patient-based hook** (cough >8 weeks, still coughing after work-up)`,`Agree a **next step** (follow-up visit/query) before leaving`],
+  say:`Of course, Doctor – I’ll be very quick. One question: of your patients with a cough lasting over eight weeks and a normal chest X-ray, how many are still coughing after asthma, rhinitis and reflux have been treated? … I’ll leave the data with you, and if I may, I’ll come back on [day] to hear which patient you thought of.`,
+  proof:[`Morice, Eur Respir J 2020; Parker, Thorax 2023 – diagnostic framework (the logic behind your question)`,`Smith, ERJ Open Res 2020 – RCC definition`],
+  avoid:`Don’t launch into a full detail aid when time is short.`,
+  hit:[{t:'Respected their time',re:/of course|sure|quick|brief|understand|respect/i},{t:'Asked a patient-based question',re:/\?/},{t:'Agreed a next step',re:/come back|follow[- ]?up|next|visit|revert|\bon\b (mon|tue|wed|thu|fri|sat)/i}], next:['c_probe','c_close'] },
+
+/* ───────────── CALL CRAFT ───────────── */
+{ id:'c_fun', cat:'call', q:'Give me an icebreaker to open a chronic-cough call', s:'Icebreakers – cough facts',
+  keys:'icebreaker ice breaker opener open call fun facts interesting weird facts cough facts droplets giraffe rib fracture opening line start conversation hook',
+  a:`Pick one, then bridge to chronic cough:
+• **Speed & droplets:** one cough can expel ~**3,000 droplets**, some at **80–100 km/h**
+• **Air volume:** an average cough expels ~**1.5 litres** of air
+• **Rib fracture:** violent coughing can break a rib (usually where bones are weakened, e.g. osteoporosis or cancer)
+• **Giraffes:** they’re “immune” to cough – we don’t know why!`,
+  say:`If a single cough is this forceful, Doctor, imagine your patients who do it for months or years. How many of them are you seeing with a cough beyond eight weeks?`, next:['c_probe','c_pitch'] },
+
+{ id:'c_probe', cat:'call', q:'What probing questions should I ask the doctor?', s:'Probing questions to ask',
+  keys:'probing questions ask doctor discovery questions spin needs open questions what to ask probe explore opening',
+  a:`1. How many patients do you see with cough **lasting >8 weeks**?
+2. After asthma, rhinitis and reflux are treated, **what proportion still cough**?
+3. Does the cough trigger with **talking, cold air or perfume**?
+4. **What have you tried**, and what do patients say about drowsiness or other side effects?
+5. How is it affecting their **sleep, work and social life**?
+6. Which patient from this week would you consider?`, next:['c_laer','c_pitch'] },
+
+{ id:'c_laer', cat:'call', q:'How do I handle objections? (LAER)', s:'LAER objection framework',
+  keys:'laer framework handle objections objection handling listen acknowledge explore respond technique how to answer doctor objection method',
+  a:`**L**isten – let the doctor finish; don’t interrupt
+**A**cknowledge – “That’s a fair point…”
+**E**xplore – ask one question to find the real concern
+**R**espond – one data point + its publication, then **confirm**: “Does that address your concern?”
+Rule of thumb: **one objection · one answer · one proof**. Never argue; stay with the trial data.`, next:['DRILL','obj_small','obj_taste'] },
+
+{ id:'c_pitch', cat:'call', q:'Give me a 30-second Gefacalm pitch', s:'30-second pitch',
+  keys:'pitch 30 second elevator pitch short detailing script summary talk track gefacalm introduction',
+  a:`Your 30-second pitch:`,
+  say:`Doctor, a cough lasting over eight weeks that persists after asthma, reflux and rhinitis are treated is often cough hypersensitivity – over-active airway nerves. Gefapixant is a first-in-class, non-narcotic P2X3 antagonist that blocks the ATP signal driving those nerves. In two Phase 3 trials of 2,044 patients it reduced 24-hour cough frequency by 62 to 63 percent from baseline, with benefit from week 4 and gains in cough-specific quality of life. Taste change is the most common side effect, so I’d suggest setting that expectation up-front. Which patient would you consider first?`,
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Markham, Drugs 2022;82(6):691-695'}, next:['c_close','ev_30s'] },
+
+{ id:'c_close', cat:'call', q:'How do I close the call?', s:'Closing the call',
+  keys:'close closing call commitment ask prescribe trial next step end of call call to action follow up how to close',
+  a:`• Summarise the **1–2 points** the doctor agreed with
+• Ask for a **specific commitment** – a named patient type, not “will you prescribe?”
+• If hesitant → **LAER**, then re-ask
+• Agree a **next step with a date** (data follow-up or Medical query)`,
+  say:`Doctor, given your patients with a cough lasting over eight weeks despite work-up, will you try Gefapixant 45 mg twice daily in the next suitable patient, and may I check in with you on [date] to hear how it went?`, next:['c_laer','pt_expect'] },
+
+{ id:'c_facts', cat:'call', q:'Show me the quick-facts card', s:'Quick-facts card', card:'facts',
+  keys:'quick facts card numbers cheat sheet key numbers cheat summary at a glance pocket',
+  a:`Key numbers at a glance`,
+  tiles:[
+    ['45 mg BID','dose studied'],
+    ['2,044','patients – COUGH-1 + COUGH-2'],
+    ['62% | 63%','cough frequency ↓ vs baseline (12 | 24 wks)'],
+    ['18.5% | 14.6%','relative ↓ vs placebo (p=0.041 | 0.031)'],
+    ['Week 4','benefit seen from'],
+    ['59% | 69%','taste-related AEs on 45 mg (vs 4.5% | 8.3%)'],
+    ['5.3% | 5.7%','serious AEs on 45 mg (placebo 5.8%)'],
+    ['415','Phase IIIb – recent-onset cough'],
+    ['11.2%','AE discontinuation, IIIb (placebo 1.9%)']
+  ],
+  src:{t:'ref', r:'McGarvey et al., Lancet 2022;399(10328):909-923; Lung 2023;201(2):111-118'}, next:['ev_primary','saf_overview'] }
+
+];
+
+
+(function(){
+'use strict';
+
+/* ═════════ CONFIG ═════════ */
+const COMPLETE_AFTER = 5;      // unique answers/objections viewed before SCORM "completed"
+const VERSION = '1.2';
+
+/* ═════════ SCORM (1.2 + 2004, auto-detected; silent standalone) ═════════ */
+const SC=(function(){
+  let api=null,ver=null,ok=false,t0=Date.now(),finished=false;
+  function find(w){let n=0;while(w&&n++<12){try{if(w.API_1484_11){ver='2004';return w.API_1484_11}if(w.API){ver='1.2';return w.API}}catch(e){}if(w.parent===w)break;w=w.parent}return null}
+  function init(){
+    try{
+      api=find(window)||(window.opener?find(window.opener):null);
+      if(!api)return false;
+      ok=String(ver==='2004'?api.Initialize(''):api.LMSInitialize(''))==='true';
+      if(ok){
+        const st=get(ver==='2004'?'cmi.completion_status':'cmi.core.lesson_status');
+        if(!st||st==='not attempted'||st==='unknown')set(ver==='2004'?'cmi.completion_status':'cmi.core.lesson_status','incomplete');
+        commit();
+      }
+      return ok;
+    }catch(e){ok=false;return false}
+  }
+  function get(k){if(!ok)return '';try{return String(ver==='2004'?api.GetValue(k):api.LMSGetValue(k))}catch(e){return ''}}
+  function set(k,v){if(!ok)return false;try{return String(ver==='2004'?api.SetValue(k,v):api.LMSSetValue(k,v))==='true'}catch(e){return false}}
+  function commit(){if(!ok)return;try{ver==='2004'?api.Commit(''):api.LMSCommit('')}catch(e){}}
+  function complete(){
+    if(!ok)return;
+    set(ver==='2004'?'cmi.completion_status':'cmi.core.lesson_status','completed');
+    if(ver==='2004')set('cmi.success_status','passed');
+    commit();
+  }
+  function pad(n,l){n=String(n);while(n.length<l)n='0'+n;return n}
+  function sessionTime(){
+    const s=Math.max(0,Math.round((Date.now()-t0)/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
+    return ver==='2004'?('PT'+h+'H'+m+'M'+sec+'S'):(pad(h,4)+':'+pad(m,2)+':'+pad(sec,2)+'.00');
+  }
+  function finish(done){
+    if(!ok||finished)return;finished=true;
+    try{
+      set(ver==='2004'?'cmi.session_time':'cmi.core.session_time',sessionTime());
+      set(ver==='2004'?'cmi.exit':'cmi.core.exit',done?(ver==='2004'?'normal':''):'suspend');
+      commit();
+      ver==='2004'?api.Terminate(''):api.LMSFinish('');
+    }catch(e){}
+  }
+  function name(){
+    const n=get(ver==='2004'?'cmi.learner_name':'cmi.core.student_name');
+    if(!n)return '';
+    const m=n.split(',');
+    return (m.length>1?m[1]:m[0]).trim().split(/\s+/)[0]||'';
+  }
+  return{init,get,set,commit,complete,finish,name,status:()=>ok?('SCORM '+ver+' connected'):'Preview mode – no LMS detected',get on(){return ok}};
+})();
+
+/* ═════════ STATE (SCORM suspend_data, with localStorage fallback) ═════════ */
+const S={seen:[],drills:0,theme:'auto',done:false,auto:false};
+function loadState(){
+  let raw='';
+  if(SC.on)raw=SC.get('cmi.suspend_data');
+  else{try{raw=localStorage.getItem('gefacalm_coach')||''}catch(e){}}
+  if(raw){try{const o=JSON.parse(raw);if(o&&typeof o==='object'){S.seen=Array.isArray(o.s)?o.s:[];S.drills=o.d|0;S.theme=o.t||'auto';S.done=!!o.c;S.auto=!!o.a}}catch(e){}}
+  if(SC.on){const a=SC.get('cmi.core.lesson_status'),b=SC.get('cmi.completion_status');if(a==='completed'||a==='passed'||b==='completed')S.done=true}
+}
+let saveT=null;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{
+    const raw=JSON.stringify({s:S.seen,d:S.drills,t:S.theme,c:S.done?1:0,a:S.auto?1:0});
+    try{localStorage.setItem('gefacalm_coach',raw)}catch(e){}
+    if(SC.on){SC.set('cmi.suspend_data',raw);SC.commit()}
+  },250);
+}
+
+/* ═════════ SEARCH ENGINE ═════════ */
+//<search>
+const STOP=new Set('a an the is are was were be been am of to in on for and or with what how why when who which do does did can could should would i me my you your it its this that these those about at as by from if into than then there their they them we our us so tell give show explain please any some more also just very really want need know like get got say says said doctor doc he she him her very much'.split(' '));
+function stem(w){
+  if(w.length>4){
+    if(w.endsWith('ies'))w=w.slice(0,-3)+'y';
+    else if(w.endsWith('s')&&!/(ss|us|is)$/.test(w))w=w.slice(0,-1);
+  }
+  if(w.length>5&&w.endsWith('ing'))w=w.slice(0,-3);
+  else if(w.length>4&&w.endsWith('ed'))w=w.slice(0,-2);
+  if(w.length>4&&w.endsWith('e'))w=w.slice(0,-1);
+  return w;
+}
+const SYN=(function(){
+  const g={
+    cost:'price pricing expensive costly afford affordable cheap cheaper money',
+    tb:'tuberculosis',
+    dose:'dosage dosing posology regimen',
+    taste:'dysgeusia ageusia hypogeusia metallic bitter',
+    ae:'adverse sae saes aes',
+    renal:'kidney',liver:'hepatic',pregnancy:'pregnant lactation breastfeeding',
+    opioid:'morphine codeine',
+    competitor:'camlipixant eliapixant sivopixant competing competition',
+    discontinue:'quit stopped stop dropout withdraw discontinued discontinuation',
+    fda:'usa rejected',
+    placebo:'sham',
+    syrup:'dextromethorphan',
+    interaction:'interactions concomitant',
+    elderly:'geriatric old',
+    mechanism:'moa',
+    pitch:'elevator',
+    busy:'hurry'
+  };
+  const m={};
+  for(const k in g)g[k].split(' ').forEach(w=>{m[stem(w)]=stem(k)});
+  return m;
+})();
+function rawTok(text){
+  return (String(text).toLowerCase().replace(/[’']/g,'').replace(/([a-z])-(\d)/g,'$1$2').match(/[a-z][a-z0-9]*|\d+(?:\.\d+)?/g)||[])
+    .filter(w=>!STOP.has(w))
+    .map(w=>{const s=stem(w);return SYN[s]||s});
+}
+let VOCAB=new Set(),IDF={},MAXIDF=1;
+function lev(a,b,max){
+  if(Math.abs(a.length-b.length)>max)return max+1;
+  let prev=[],cur=[];
+  for(let j=0;j<=b.length;j++)prev[j]=j;
+  for(let i=1;i<=a.length;i++){
+    cur=[i];let min=i;
+    for(let j=1;j<=b.length;j++){
+      cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+      if(cur[j]<min)min=cur[j];
+    }
+    if(min>max)return max+1;
+    prev=cur;
+  }
+  return prev[b.length];
+}
+function fix(t){
+  if(VOCAB.has(t)||t.length<6||/\d/.test(t))return t;
+  const max=t.length>=8?2:1;let best=null,bd=max+1;
+  for(const v of VOCAB){const d=lev(t,v,max);if(d<bd){bd=d;best=v;if(d===1&&max===1)break}}
+  return best&&bd<=max?best:t;
+}
+function tok(text){return rawTok(text).map(fix)}
+function prepKB(KBX){
+  const df={};
+  KBX.forEach(e=>{
+    e._k=new Set(rawTok(e.keys||''));
+    e._q=new Set(rawTok((e.q||'')+' '+(e.s||'')+' '+(e.obj||'')));
+    e._b=new Set(rawTok((e.a||'')+' '+(e.say||'')+' '+(e.points?e.points.join(' '):'')));
+    const u=new Set([...e._k,...e._q,...e._b]);
+    u.forEach(t=>{df[t]=(df[t]||0)+1;VOCAB.add(t)});
+    e._kp=[...e._k,...e._q];
+  });
+  const N=KBX.length;MAXIDF=Math.log(N)+1;
+  for(const t in df)IDF[t]=Math.log(N/df[t])+1;
+}
+const ANS_T=10,SUG_T=4;
+function scoreAll(KBX,query,prefixLast){
+  const qt=tok(query);if(!qt.length)return [];
+  const intent=/\b(objection|objects?|says?|saying|handle|respond|reply|counter|pushback)\b/i.test(query);
+  const out=[];
+  KBX.forEach(e=>{
+    let s=0,hit=0,strong=0,hw=0,tw=0;
+    qt.forEach((t,i)=>{
+      const idf=IDF[t]||MAXIDF;let w=0;tw+=idf;
+      if(e._k.has(t))w+=4;
+      if(e._q.has(t))w+=3;
+      if(!w&&e._b.has(t))w+=.7;
+      if(!w&&prefixLast&&i===qt.length-1&&t.length>=3&&e._kp.some(k=>k.startsWith(t)))w+=2;
+      if(w){s+=w*idf;hit++;hw+=idf;if(w>=2)strong++}
+    });
+    if(!hit)return;
+    const cov=hw/tw;
+    s*=(0.45+cov);
+    if(intent&&e.cat==='obj')s*=1.25;
+    out.push({e,s,cov,hit,strong,n:qt.length});
+  });
+  return out.sort((a,b)=>b.s-a.s);
+}
+function isAnswer(r){return !!r&&r.s>=ANS_T&&r.cov>.5&&r.strong>=1}
+//</search>
+
+/* ═════════ HELPERS ═════════ */
+const $=s=>document.querySelector(s);
+const chat=$('#chat'),inp=$('#inp'),form=$('#form'),sugg=$('#suggest'),short=$('#shortcuts');
+const FAST=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const byId={};KB.forEach(e=>byId[e.id]=e);
+const catById={};CATS.forEach(c=>catById[c.id]=c);
+prepKB(KB);
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmt(s){
+  return String(s).split('\n').map(l=>{
+    if(!l.trim())return '<div class="gap"></div>';
+    let t=esc(l).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<i>$2</i>');
+    if(l.startsWith('• '))return '<div class="bl"><span>•</span><span>'+t.slice(2)+'</span></div>';
+    if(l.startsWith('– '))return '<div class="sb"><span>–</span><span>'+t.slice(2)+'</span></div>';
+    const m=l.match(/^(\d+)\. /);
+    if(m)return '<div class="bl"><span>'+m[1]+'.</span><span>'+t.replace(/^\d+\. /,'')+'</span></div>';
+    return '<div class="ln">'+t+'</div>';
+  }).join('');
+}
+function plain(h){return String(h).replace(/<[^>]*>/g,'')}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const timeStr=()=>new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ═════════ THEME ═════════ */
+function applyTheme(){
+  const dark=S.theme==='dark'||(S.theme==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?'#1c2240':'#2f3d94';
+}
+
+
+/* ═════════ READ-ALOUD (free, built-in phone/browser voices) ═════════ */
+const SPK={};let SPKN=0;
+function toSpeech(html){
+  const d=document.createElement('div');d.innerHTML=html;
+  d.querySelectorAll('.src,.cp,.sayh,.docname,.ttl,.ph,.spk,.meta').forEach(n=>n.remove());
+  d.querySelectorAll('div,li,p').forEach(n=>n.appendChild(document.createTextNode('. ')));
+  d.querySelectorAll('span,b').forEach(n=>n.appendChild(document.createTextNode(' ')));
+  let t=d.textContent;
+  t=t.replace(/twice daily \(BID\)|45 mg BID/g,m=>m==='45 mg BID'?'45 mg twice daily':'twice daily').replace(/Gefacalm/g,'Gefa calm')
+   .replace(/\bCOUGH-?(\d)/g,'Cough $1')
+   .replace(/\bP2X2\/3/g,'P 2 X 2 slash 3').replace(/\bP2X3/g,'P 2 X 3')
+   .replace(/\bPhase IIIb\b/g,'Phase 3 b').replace(/\bIIIb\b/g,'3 b').replace(/\bPhase III\b/g,'Phase 3')
+   .replace(/\bBID\b/g,'twice daily')
+   .replace(/\bAEs\b/g,'adverse events').replace(/\bAE\b/g,'adverse event')
+   .replace(/\bQoL\b/g,'quality of life')
+   .replace(/\b(RCC|UCC|CHS|LCQ|VAS|CSD|ATP|PPI|ICS|ILD|PFT|TB|ERS|ERJ|EU|CI|UACS|NAEB|CRC)\b/g,m=>m.split('').join(' '))
+   .replace(/(\d)\s*mg\b/g,'$1 milligrams').replace(/(\d)\s*mm\b/g,'$1 millimetres')
+   .replace(/(\d+)-h\b/g,'$1 hour').replace(/\bwks?\b/gi,'weeks').replace(/\byrs?\b/gi,'years')
+   .replace(/\bvs\.?(?=\s)/gi,'versus').replace(/\be\.g\./g,'for example')
+   .replace(/p\s*=\s*0/gi,'p equals 0')
+   .replace(/−(\d)/g,'minus $1')
+   .replace(/%/g,' percent')
+   .replace(/≥\s*/g,'at least ').replace(/≤\s*/g,'at most ').replace(/>\s*(\d)/g,'more than $1').replace(/<\s*(\d)/g,'less than $1')
+   .replace(/~\s*/g,'about ')
+   .replace(/(\d)\s*[–-]\s*(\d)/g,'$1 to $2')
+   .replace(/Na⁺/g,'sodium').replace(/Ca²⁺/g,'calcium')
+   .replace(/→/g,', then ').replace(/[↓↑]/g,' ')
+   .replace(/\|/g,' and ').replace(/\//g,' or ')
+   .replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF\u2B50\uFE0F\u200D•]/gu,' ')
+   .replace(/[“”"*_#]/g,'')
+   .replace(/\s*[–—]\s*/g,', ')
+   .replace(/&/g,' and ')
+   .replace(/\s+/g,' ')
+   .replace(/\s+([.,;:?!])/g,'$1').replace(/\?\./g,'?').replace(/(\.\s*)+\./g,'.').replace(/,\s*\./g,'.').replace(/:\s*\./g,'.').replace(/\.\s*,/g,'.');
+  return t.trim();
+}
+const TTS=(function(){
+  const ok=!!(window.speechSynthesis&&window.SpeechSynthesisUtterance);
+  let voice=null,gen=0,queue=[],playing=null,busy=false,keep=null;
+  function pick(){
+    if(!ok)return;const vs=speechSynthesis.getVoices()||[];if(!vs.length)return;
+    voice=vs.find(v=>/^en[-_]IN$/i.test(v.lang))||vs.find(v=>/^en[-_]GB$/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;
+  }
+  if(ok){pick();if(speechSynthesis.addEventListener)speechSynthesis.addEventListener('voiceschanged',pick);else speechSynthesis.onvoiceschanged=pick}
+  function chunks(text){
+    const P='\u0001',sents=(text.replace(/(\d)\.(\d)/g,'$1'+P+'$2').match(/[^.!?;]+[.!?;]*/g)||[text]).map(s=>s.split(P).join('.')),out=[];let cur='';
+    sents.forEach(s=>{
+      s=s.trim();if(!s)return;
+      if(s.length>200){s.split(/,\s*/).forEach(p=>{if((cur+' '+p).length>170){if(cur)out.push(cur);cur=p}else cur=(cur+' '+p).trim()});return}
+      if((cur+' '+s).length>170){out.push(cur);cur=s}else cur=(cur+' '+s).trim();
+    });
+    if(cur)out.push(cur);return out;
+  }
+  function mark(){
+    document.querySelectorAll('.spk').forEach(b=>{
+      const on=playing!=null&&String(playing)===b.dataset.spk;
+      b.classList.toggle('on',on);b.textContent=on?'⏹':'🔊';
+      b.setAttribute('aria-label',on?'Stop reading':'Read aloud');
+    });
+  }
+  function next(){
+    if(busy)return;
+    const item=queue[0];
+    if(!item){playing=null;mark();return}
+    if(!item.parts.length){queue.shift();return next()}
+    busy=true;playing=item.id;mark();
+    const my=gen,part=item.parts.shift(),u=new SpeechSynthesisUtterance(part);
+    u.lang=voice?voice.lang:'en-IN';if(voice)u.voice=voice;u.rate=.95;u.pitch=1;
+    const done=()=>{if(my!==gen)return;busy=false;next()};
+    u.onend=done;u.onerror=done;keep=u;
+    try{speechSynthesis.speak(u)}catch(e){busy=false}
+  }
+  function stop(){gen++;queue=[];busy=false;playing=null;if(ok){try{speechSynthesis.cancel()}catch(e){}}mark()}
+  function speak(id,text,append){
+    if(!ok||!text)return false;
+    if(!append)stop();
+    queue.push({id,parts:chunks(text)});
+    if(!busy)setTimeout(next,append?0:90);
+    return true;
+  }
+  return{ok,speak,stop,say:t=>speak(null,t,false),get playing(){return playing}};
+})();
+
+/* ═════════ CHAT RENDERING (queued so order is always natural) ═════════ */
+let Q=Promise.resolve(),pending=0,rush=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,(FAST||rush)?0:ms));
+function enqueue(fn){
+  pending++;
+  Q=Q.then(fn).catch(e=>console.error(e)).then(()=>{pending--;if(!pending)rush=false});
+  return Q;
+}
+function scrollChat(node){
+  requestAnimationFrame(()=>{
+    const tall=node&&node.offsetHeight>chat.clientHeight*.78;
+    if(tall)chat.scrollTo({top:node.offsetTop-8,behavior:FAST?'auto':'smooth'});
+    else chat.scrollTo({top:chat.scrollHeight,behavior:FAST?'auto':'smooth'});
+  });
+}
+function removeChips(){chat.querySelectorAll('.chips').forEach(c=>c.remove())}
+function mkRow(side){const r=document.createElement('div');r.className='row '+side;return r}
+function userMsg(text){
+  return enqueue(async()=>{
+    TTS.stop();removeChips();
+    const r=mkRow('me');
+    r.innerHTML='<div class="bubble">'+esc(text)+'<div class="meta">'+timeStr()+' <span class="tick">✓✓</span></div></div>';
+    chat.appendChild(r);scrollChat(r);
+    await sleep(250);
+  });
+}
+function say(t,opts){return bot(fmt(t),opts)}
+function bot(html,opts){
+  opts=opts||{};
+  return enqueue(async()=>{
+    const t=mkRow('bot');t.classList.add('typing');t.setAttribute('aria-hidden','true');
+    t.innerHTML='<div class="bubble"><i></i><i></i><i></i></div>';
+    chat.appendChild(t);scrollChat(t);
+    await sleep(opts.wait!=null?opts.wait:clamp(380+plain(html).length*2.2,500,1100));
+    t.remove();
+    let sid=null,btn='';
+    if(opts.speak&&TTS.ok){sid=++SPKN;SPK[sid]=toSpeech(html);btn='<button type="button" class="spk" data-spk="'+sid+'" aria-label="Read aloud" title="Read aloud">🔊</button>'}
+    const r=mkRow('bot');
+    r.innerHTML='<div class="bubble '+(opts.cls||'')+'">'+html+'<div class="meta">'+btn+timeStr()+'</div></div>';
+    chat.appendChild(r);scrollChat(r);
+    if(sid!=null&&S.auto&&SPK[sid])TTS.speak(sid,SPK[sid],true);
+  });
+}
+function chips(list){
+  return enqueue(async()=>{
+    removeChips();
+    const c=document.createElement('div');c.className='chips';
+    list.forEach(x=>{
+      const b=document.createElement('button');b.type='button';b.className='chip'+(x.cls?' '+x.cls:'');b.textContent=x.label;
+      b.addEventListener('click',()=>{removeChips();x.fn()});
+      c.appendChild(b);
+    });
+    chat.appendChild(c);scrollChat(c);
+  });
+}
+function cardRow(html){
+  return enqueue(async()=>{
+    const t=mkRow('bot');t.classList.add('typing');t.innerHTML='<div class="bubble"><i></i><i></i><i></i></div>';
+    chat.appendChild(t);scrollChat(t);await sleep(450);t.remove();
+    const r=mkRow('bot');r.innerHTML=html;chat.appendChild(r);scrollChat(r);
+  });
+}
+
+/* ═════════ ANSWER PARTS ═════════ */
+function srcTag(src){
+  if(!src||!src.r)return '';
+  return '<div class="src ref"><b>📚 Reference</b><span>'+esc(src.r)+'</span></div>';
+}
+function sayCard(text){
+  return '<div class="say"><div class="sayh"><span>🎤 Say it like this</span><button class="cp" type="button" data-copy="'+encodeURIComponent(text)+'" aria-label="Copy talk track">Copy</button></div><div class="sayt">“'+esc(text)+'”</div></div>';
+}
+function proofCard(e){
+  let h='<div class="proof"><div class="ph">📌 Proof you can quote</div>'+(e.proof||[]).map(p=>'<div class="bl"><span>•</span><span>'+esc(p)+'</span></div>').join('')+'</div>';
+  if(e.avoid)h+='<div class="avoid">🚫 <b>Avoid:</b> '+esc(e.avoid)+'</div>';
+  return h+srcTag(e.src);
+}
+function handleBlock(e){
+  let t='**How to handle it (LAER)**\n';
+  t+='• **Listen & Acknowledge** – '+e.ack+'\n';
+  t+='• **Explore** – ask: '+e.explore+'\n';
+  t+='• **Respond** with:\n'+e.points.map(p=>'– '+p).join('\n');
+  return fmt(t);
+}
+function nextChips(e,extra){
+  const list=[];
+  (e.next||[]).forEach(id=>{
+    if(id==='DRILL')list.push({label:'🎯 Try the objection drill',cls:'pri',fn:()=>startDrill()});
+    else if(byId[id])list.push({label:(byId[id].cat==='obj'?'🗣 ':'')+(byId[id].s||byId[id].q),fn:()=>ask(byId[id],true)});
+  });
+  if(extra)list.push(...extra);
+  list.push({label:'📚 More topics',fn:()=>showTopics()});
+  return list.slice(0,5);
+}
+function markSeen(id){
+  if(!S.seen.includes(id)){
+    S.seen.push(id);updateRing();
+    if(!S.done&&S.seen.length>=COMPLETE_AFTER){
+      S.done=true;SC.complete();updateRing();
+      say('🎉 **Module complete!** You’ve worked through '+S.seen.length+' coaching answers. I’ll keep going as long as you like – the best way to get sharper is the **objection drill**.',{wait:500});
+    }
+    save();
+  }
+}
+function answerParts(e){
+  if(e.card==='facts'){
+    bot('<b>📌 Quick facts</b><div class="tiles">'+e.tiles.map(t=>'<div class="tile"><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div>').join('')+'</div>'+srcTag(e.src),{cls:'card',wait:500,speak:true});
+    return;
+  }
+  if(e.cat==='obj'){
+    bot('<div class="docname">🩺 Doctor says</div><div class="docq">“'+esc(e.obj)+'”</div>',{cls:'doctor',wait:450,speak:true});
+    bot(handleBlock(e),{cls:'card',speak:true});
+    bot(sayCard(e.say),{cls:'card',wait:600,speak:true});
+    bot(proofCard(e),{cls:'card',wait:500});
+    return;
+  }
+  bot('<div class="ttl">'+esc(e.q)+'</div>'+fmt(e.a)+(e.say?'':srcTag(e.src)),{wait:e.say?600:undefined,speak:true});
+  if(e.say){
+    bot(sayCard(e.say)+srcTag(e.src),{cls:'card',wait:600,speak:true});
+  }
+}
+function ask(e,fromChip){
+  if(drill)endDrill(true);
+  const label=(e.cat==='obj'?'Objection: ':'')+(e.s||e.q).replace(/^“|”$/g,'');
+  userMsg(label);
+  answerParts(e);
+  markSeen(e.id);
+  chips(nextChips(e));
+}
+
+/* ═════════ TOPICS ═════════ */
+function showTopics(){
+  if(drill)endDrill(true);
+  say('What would you like to explore?',{wait:400});
+  cardRow('<div class="cats">'+CATS.map(c=>'<button class="cat" type="button" data-cat="'+c.id+'"><span class="ci">'+c.ico+'</span><b>'+esc(c.name)+'</b><small>'+esc(c.blurb)+'</small></button>').join('')+'</div>');
+  chips([{label:'🎯 Objection drill',cls:'pri',fn:()=>startDrill()},{label:'📌 Quick facts',fn:()=>ask(byId.c_facts)}]);
+}
+function showCat(id){
+  const c=catById[id];if(!c)return;
+  userMsg(c.ico+' '+c.name);
+  const items=KB.filter(e=>e.cat===id);
+  cardRow('<div class="list"><div class="lh"><span>'+c.ico+'</span><span>'+esc(c.name)+' · '+items.length+' answers</span></div>'+
+    items.map(e=>'<button class="li" type="button" data-id="'+e.id+'"><span class="t">'+esc(e.s||e.q)+'</span><span>›</span></button>').join('')+'</div>');
+  chips([{label:'⬅ All topics',fn:()=>showTopics()},{label:'🎯 Objection drill',fn:()=>startDrill()}]);
+}
+
+/* ═════════ OBJECTION DRILL ═════════ */
+let drill=null,bag=[];
+const ACK=/(fair|valid|understand|appreciate|good (point|question)|great question|you.?re right|you are right|agree|absolutely|makes sense|i hear|true|of course|sure|sensible|exactly the right)/i;
+const EVID=/(\d|percent|%|trial|study|studies|cough[- ]?1|cough[- ]?2|phase|data|evidence|slide|placebo|guideline)/i;
+function nextObjection(){
+  if(!bag.length)bag=shuffle(KB.filter(e=>e.cat==='obj').map(e=>e.id));
+  return byId[bag.pop()];
+}
+function startDrill(){
+  drill=null;
+  userMsg('🎯 Start objection drill');
+  say('**Objection drill** 🎯 I’ll play the doctor. Answer in your own words using **LAER** – acknowledge, probe, respond with proof, confirm. I’ll score you on the key points, then show the model answer.',{wait:700});
+  drillAsk();
+}
+function drillAsk(){
+  const e=nextObjection();drill={id:e.id,attempted:false};
+  const who=pick(['Pulmonologist','Chest physician','Consulting physician','General physician']);
+  bot('<div class="docname">🩺 Dr. · '+who+'</div><div class="docq">“'+esc(e.obj)+'”</div>',{cls:'doctor',wait:700,speak:true});
+  say('**Your turn.** Type how you’d respond – or tap **Reveal** to see the model answer.',{wait:500});
+  chips([{label:'💡 Reveal model answer',cls:'pri',fn:()=>drillReveal()},{label:'⏭ Skip',fn:()=>{userMsg('Skip');drillAsk()}},{label:'✖ End drill',fn:()=>{userMsg('End drill');endDrill()}}]);
+}
+function drillReveal(attemptText){
+  if(!drill)return;
+  const e=byId[drill.id];
+  if(!attemptText)userMsg('Reveal the model answer');
+  S.drills++;save();
+  say(attemptText?'**Model answer to compare with yours** 👇':'**Model answer** 👇',{wait:450});
+  bot(handleBlock(e),{cls:'card',speak:true});
+  bot(sayCard(e.say),{cls:'card',wait:600,speak:true});
+  bot(proofCard(e),{cls:'card',wait:500});
+  markSeen(e.id);
+  chips([{label:'➡ Next objection',cls:'pri',fn:()=>{userMsg('Next objection');drillAsk()}},{label:'✖ End drill',fn:()=>{userMsg('End drill');endDrill()}},{label:'📚 Topics',fn:()=>showTopics()}]);
+  drill={id:e.id,attempted:true,done:true};
+}
+function drillEvaluate(text){
+  const e=byId[drill.id];
+  const words=text.trim().split(/\s+/).length;
+  if(words<5){
+    say('Give me a fuller response – at least a sentence or two, as you would say it to the doctor. Or tap **Reveal**.',{wait:450});
+    chips([{label:'💡 Reveal model answer',cls:'pri',fn:()=>drillReveal()},{label:'⏭ Skip',fn:()=>{userMsg('Skip');drillAsk()}},{label:'✖ End drill',fn:()=>{userMsg('End drill');endDrill()}}]);
+    return;
+  }
+  const checks=[{t:'Acknowledged the concern',re:ACK},{t:'Backed it with data / evidence',re:EVID}].concat(e.hit||[]).concat([{t:'Asked a question / checked back',re:/\?/}]);
+  const seen={},uniq=checks.filter(c=>!seen[c.t]&&(seen[c.t]=1));
+  const res=uniq.map(c=>({t:c.t,ok:c.re.test(text)}));
+  const n=res.filter(r=>r.ok).length,pct=n/res.length;
+  const verdict=pct>=.8?'Strong response 💪':pct>=.5?'Good start 👍 – a few gaps to close':'Let’s sharpen this – see what was missing';
+  bot('<div class="ttl">📋 Coach scorecard: '+n+'/'+res.length+'</div><div class="score">'+res.map(r=>'<div><span>'+(r.ok?'✅':'⬜')+'</span><span>'+esc(r.t)+'</span></div>').join('')+'</div><div style="margin-top:6px"><b>'+verdict+'</b></div>',{cls:'card',wait:700});
+  drillReveal(text);
+}
+function endDrill(silent){
+  if(!drill)return;
+  drill=null;
+  if(!silent){
+    say('Nice work 👏 You’ve practised **'+S.drills+'** objection'+(S.drills===1?'':'s')+' so far. Come back any time – repetition is what makes these answers automatic.',{wait:600});
+    chips(mainChips());
+  }
+}
+
+/* ═════════ MAIN FLOW ═════════ */
+function mainChips(){
+  return [
+    {label:'⚙️ How does Gefapixant work?',fn:()=>ask(byId.sci_moa)},
+    {label:'📊 Main trial results',fn:()=>ask(byId.ev_primary)},
+    {label:'👅 Taste side effects',fn:()=>ask(byId.saf_taste)},
+    {label:'🗣 “Benefit over placebo is small”',fn:()=>ask(byId.obj_small)},
+    {label:'🎯 Objection drill',cls:'pri',fn:()=>startDrill()},
+    {label:'📚 Browse topics',fn:()=>showTopics()}
+  ];
+}
+function welcome(){
+  const nm=SC.name();
+  bot('<img class="logo" src="data:image/png;base64,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qlVXjbuVJ49+w5Hf3fu7woLCmz75yU2bN0ci0SP0+4GBgbzcPLfLbTXVMIwJHpw/+/xznPOLl1/023t/p8iKw+nw+/3PvfD8Z+/+zAXLlj344APr1q93u92yLA8PDb/40ot/8aW/WLxoUdpYLYR4+ZVXXnn1VSLhcXtMYYbC4Xffe2/lypUPP/LwP//0n8tKS48w24ZCoSeferK3r5cE6br+6KOPappWU13zja9/3ev1Hmg6cN99v/f7/dnZWaqqjvj94VD4/AvO/9xnPut2u01hcuREpMhKU1PTQ488PDA44Ha5GWPBYPC555+79VO3rFq16mh7TPrpb7/z9tNPP0MknC6XEMLv97/2+uuf+cxnZs+aFYlG//TE40MDAwRgmuYfH3ggkUhUVVX9zV99U/J43njrzaeeekriUk5ujmma/W+88fobb9x9192zZs482zjYJmAbNj7mBNze2WGYZk1N7bhG4LHI8vmsD9Zx3Xtr3vvDAw9cteqq66+71uv2EMDBgwfv/+Mff33PPT/8wQ8qysuvvebayy+7/LXXX+vr6/v8Zz+n63pRUZHf7//1Pfd43O4ffv8HZWVliKjr+ltvv/3Qww8VlxTfeMONaTV0oH/gnt/ek5eX/7ff+duqykpE7Orufunll/740INOt+vylZcREQEZhmHopiChKMonb/jkP//LPz/51JNf++rX0u18+ZWXt+/Y8Q8//GF2VhYAvPLqKy+8+MJdd9515RVXcC4BUEvrwd/de+8DDzz0k5/U+Ly+1Bfh7bff7h/ov/mmm5YvX+50OsPh8IsvvfjSyy9XVlauuvLKubPn5P3l1w3TvPe+excuWHjpihWRaLS8rCxtnR4Xjz3xeG9v3/f+/nuSJBmGgewwS4MQYnBosLyivKmp6f0PPhgYHNA0LT8vb9GiRUvPW3qc2wKAxPneffv6+vuvWnXVVatWqara29v7xwcfeOqZp3bs2rV79+7P3P2ZJYsXS5LU3tH++9///t777i3/yU+KCousUXr9jdcfevihq1atWr36hiyfj4j6+voee/zxhx566Gj3Y2tueL3e22+7Xde0l155ube3564773Y4VNXhcLvdo6Ojv77nHkmSfvCDH5SWlFjeam+//fZDjzxcXFR88003WRUkJVkKhkbvu//3hUVFX/z8F0pLSwBweHj4yaefuu/+3yuKcuml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" alt="Gefacalm – Gefapixant 45 mg tablets">',{cls:'card',wait:300});
+  say('Hi'+(nm?' '+nm:'')+' 👋 I’m your **Gefacalm Coach**.',{wait:500});
+  say('Ask me anything about **chronic cough science**, **Gefapixant trial data**, **safety & taste**, or tricky **doctor objections** – and I’ll give you the answer, the proof, and how to say it.',{wait:900});
+  say('Try typing: “doctor says taste effects are too much”. Every clinical answer comes with its **publication reference** (Lancet, ERS guideline, Thorax…).\nTap 🔊 on any answer to hear it. To speak, use the 🎤 on your phone keyboard or the 🎤 button here.',{wait:900});
+  chips(mainChips());
+}
+function fallback(text,near){
+  say('That’s outside the Gefacalm medical content I’m built on, so I can’t answer it reliably. Here is what I can help with:',{wait:600});
+  const list=[];
+  near.slice(0,3).forEach(r=>list.push({label:r.e.s||r.e.q,fn:()=>ask(r.e)}));
+  list.push({label:'📚 Browse topics',fn:()=>showTopics()});
+  chips(list);
+}
+const GREET=/^(hi|hii+|hello|hey|hola|namaste|good (morning|afternoon|evening)|yo)\b/i;
+const THANKS=/^(thanks?|thank you|thx|ty|great|awesome|nice|cool|ok(ay)?|got it|perfect)\b/i;
+const BYE=/^(bye|goodbye|see you|exit|quit)\b/i;
+function handleText(raw){
+  const text=raw.trim();if(!text)return;
+  if(text.length>300)return;
+  userMsg(text);
+  const lc=text.toLowerCase();
+  if(drill){
+    if(/^(reveal|show( me)?( the)? answer|answer|hint|model answer|help)/.test(lc)){return drillReveal(true)}
+    if(/^(skip|next)/.test(lc)){return drillAsk()}
+    if(/^(stop|end|exit|quit|done|finish)/.test(lc)){return endDrill()}
+    if(drill.done){drill=null}else{return drillEvaluate(text)}
+  }
+  if(/^(menu|topics?|browse|categories|home)\b/.test(lc))return showTopics();
+  if(/^(drill|practice|practise|objection (drill|practice|practise)|roleplay|role play|test me|quiz( me)?)/.test(lc))return startDrill();
+  if(/^(facts?|quick facts|cheat ?sheet|numbers)\b/.test(lc))return answerEntry(byId.c_facts);
+  if(/^(help|what can you do|how (does this|do you) work|\?)/.test(lc)){
+    say('I can help with five things:\n• **Science** – cough reflex, CHS, P2X3, mechanism\n• **Evidence** – COUGH-1/2 and Phase IIIb numbers\n• **Safety** – taste events, serious AEs, counselling\n• **Objections** – what doctors say and how to answer\n• **Call craft** – openers, probing, pitch, closing\nJust type a question, or try the **objection drill**.',{wait:600});
+    return chips(mainChips());
+  }
+  if(/^(clear|reset|restart|new chat|start over)\b/.test(lc))return newChat();
+  if(GREET.test(lc)&&lc.split(/\s+/).length<=4){say('Hi 👋 What would you like to work on?',{wait:400});return chips(mainChips())}
+  if(THANKS.test(lc)&&lc.split(/\s+/).length<=4){say('Anytime! Want to test yourself with an objection?',{wait:400});return chips([{label:'🎯 Objection drill',cls:'pri',fn:()=>startDrill()},{label:'📚 Browse topics',fn:()=>showTopics()}])}
+  if(BYE.test(lc)){say('Good luck on your calls! 🍀 Come back anytime.',{wait:400});return}
+  const res=scoreAll(KB,text,false);
+  const top=res[0];
+  if(isAnswer(top)){
+    answerParts(top.e);markSeen(top.e.id);
+    const alt=res.slice(1,3).filter(r=>r.s>=top.s*.6&&r.e.id!==top.e.id&&!(top.e.next||[]).includes(r.e.id)).map(r=>({label:(r.e.cat==='obj'?'🗣 ':'')+(r.e.s||r.e.q),fn:()=>ask(r.e)}));
+    chips(nextChips(top.e,alt.slice(0,1)));
+  }else if(top&&top.s>=SUG_T&&top.strong>=1){
+    say('I’m not sure I caught that. Did you mean one of these?',{wait:500});
+    chips(res.slice(0,3).map(r=>({label:(r.e.cat==='obj'?'🗣 ':'')+(r.e.s||r.e.q),fn:()=>ask(r.e)})).concat([{label:'📚 Browse topics',fn:()=>showTopics()}]));
+  }else fallback(text,res);
+}
+function answerEntry(e){answerParts(e);markSeen(e.id);chips(nextChips(e))}
+function newChat(){
+  drill=null;chat.innerHTML='';
+  const d=document.createElement('div');d.className='datechip';d.innerHTML='<span>Today</span>';chat.appendChild(d);
+  welcome();
+}
+
+/* ═════════ PROGRESS / SHEETS ═════════ */
+function updateRing(){
+  const n=Math.min(S.seen.length,COMPLETE_AFTER),arc=$('#ringArc'),tx=$('#ringTx');
+  arc.style.strokeDashoffset=(69.1*(1-n/COMPLETE_AFTER)).toFixed(1);
+  tx.textContent=S.done?'✓':String(n);
+  $('#ringBtn').title='Progress: '+n+'/'+COMPLETE_AFTER;
+}
+function openSheet(html){
+  const sh=$('#sheet');sh.innerHTML='<div class="grab"></div>'+html;sh.hidden=false;$('#scrim').hidden=false;
+  const f=sh.querySelector('button');if(f)f.focus({preventScroll:true});
+}
+function closeSheet(){$('#sheet').hidden=true;$('#scrim').hidden=true}
+function menuSheet(){
+  const th={auto:'Auto',light:'Light',dark:'Dark'}[S.theme];
+  openSheet('<div class="sh">Menu</div>'+
+   '<button class="mi" data-m="topics"><span class="e">📚</span><span>Browse topics</span></button>'+
+   '<button class="mi" data-m="drill"><span class="e">🎯</span><span>Objection drill<small>Practise answering a doctor and get scored</small></span></button>'+
+   '<button class="mi" data-m="facts"><span class="e">📌</span><span>Quick-facts card</span></button>'+
+   '<button class="mi" data-m="progress"><span class="e">📈</span><span>My progress<small>'+Math.min(S.seen.length,COMPLETE_AFTER)+' of '+COMPLETE_AFTER+' needed for completion'+(S.done?' · ✓ complete':'')+'</small></span></button>'+
+   '<button class="mi" data-m="theme"><span class="e">🌓</span><span>Theme: '+th+'<small>Tap to switch Auto / Light / Dark</small></span></button>'+
+   (TTS.ok?'<button class="mi" data-m="auto"><span class="e">🔊</span><span>Auto-read answers: '+(S.auto?'On':'Off')+'<small>Reads each answer aloud as it appears</small></span></button>':'')+
+   '<button class="mi" data-m="new"><span class="e">🧹</span><span>New chat</span></button>'+
+   '<button class="mi" data-m="about"><span class="e">ℹ️</span><span>About & sources</span></button>');
+}
+function aboutSheet(){
+  openSheet('<div class="sh">About Gefacalm Coach</div><div class="about">'+
+   '<p>A training companion for Gefapixant (Gefacalm): science, trial evidence, safety, doctor objections and call craft.</p>'+
+   '<h4>Where answers come from</h4>'+
+   '<p>Every clinical fact comes from the Gefacalm medical presentation and the publications it cites – McGarvey (Lancet 2022), Morice (ERS guideline 2020), Parker (Thorax 2023), Markham (Drugs 2022), Chung (Nat Rev Dis Primers 2022), Lung 2023 and others. Each answer shows its reference.</p>'+
+   '<p>The call-craft tips (LAER, probing questions, closing) are selling-skill frameworks built around those facts.</p>'+
+   '<h4>How it works</h4>'+
+   '<p>It answers from a curated offline knowledge base – no generative AI at run-time, and your questions are not sent anywhere. If something isn’t in the content, it says so.</p>'+
+   '<h4>Voice</h4><p>🔊 Read-aloud uses the voices already on your phone or browser – free and works offline. Voice quality depends on the device.</p><p>🎤 To speak a question, tap the microphone on your phone keyboard (most accurate), or use the 🎤 button here where your browser supports it.</p>'+
+   '<h4>Status</h4><p>v'+VERSION+' · '+esc(SC.status())+'</p></div>');
+}
+function progressMsg(){
+  userMsg('📈 My progress');
+  const n=Math.min(S.seen.length,COMPLETE_AFTER),pct=Math.round(n/COMPLETE_AFTER*100);
+  bot('<b>Your progress</b><div class="bar"><i style="width:'+pct+'%"></i></div>'+n+' of '+COMPLETE_AFTER+' answers explored · '+S.drills+' objection'+(S.drills===1?'':'s')+' practised'+(S.done?'\n':'')+(S.done?'<div style="margin-top:4px"><b>✓ Module complete</b></div>':'<div style="margin-top:4px">Explore '+(COMPLETE_AFTER-n)+' more to complete the module.</div>'),{wait:500});
+  chips(mainChips());
+}
+
+/* ═════════ EVENTS ═════════ */
+form.addEventListener('submit',ev=>{
+  ev.preventDefault();
+  const v=inp.value;if(!v.trim())return;
+  inp.value='';hideSuggest();
+  if(pending)rush=true;
+  handleText(v);
+  inp.focus({preventScroll:true});
+});
+function hideSuggest(){sugg.hidden=true;short.hidden=false}
+inp.addEventListener('input',()=>{
+  const v=inp.value.trim();
+  if(v.length<2||drill&&!drill.done){hideSuggest();return}
+  const res=scoreAll(KB,v,true).filter(r=>r.s>=SUG_T*.6&&r.strong>=1).slice(0,3);
+  if(!res.length){hideSuggest();return}
+  sugg.innerHTML=res.map(r=>'<button type="button" class="sg" data-id="'+r.e.id+'"><i>'+(r.e.cat==='obj'?'🗣':catById[r.e.cat].ico)+'</i><span>'+esc(r.e.s||r.e.q)+'</span></button>').join('');
+  sugg.hidden=false;short.hidden=true;
+});
+sugg.addEventListener('click',ev=>{
+  const b=ev.target.closest('.sg');if(!b)return;
+  inp.value='';hideSuggest();if(pending)rush=true;ask(byId[b.dataset.id]);
+});
+chat.addEventListener('click',ev=>{
+  const li=ev.target.closest('.li');
+  if(li){if(pending)rush=true;return ask(byId[li.dataset.id])}
+  const cat=ev.target.closest('.cat');
+  if(cat){if(pending)rush=true;return showCat(cat.dataset.cat)}
+  const sp=ev.target.closest('.spk');
+  if(sp){
+    const id=sp.dataset.spk;
+    if(TTS.playing!=null&&String(TTS.playing)===id)TTS.stop();
+    else if(!TTS.speak(+id,SPK[id]))toast('Read-aloud isn’t supported on this device');
+    return;
+  }
+  const cp=ev.target.closest('.cp');
+  if(cp){
+    const t=decodeURIComponent(cp.dataset.copy);
+    const done=()=>{toast('Talk-track copied');cp.textContent='Copied ✓'};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t,done))}else fallbackCopy(t,done);
+  }
+});
+function fallbackCopy(t,done){
+  try{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done()}catch(e){toast('Press and hold to copy')}
+}
+short.addEventListener('click',ev=>{
+  const b=ev.target.closest('.pill');if(!b)return;
+  const a=b.dataset.act;if(pending)rush=true;
+  if(a==='topics')showTopics();
+  else if(a==='drill')startDrill();
+  else if(a==='facts')ask(byId.c_facts);
+  else if(a==='pitch')ask(byId.c_pitch);
+});
+$('#menuBtn').addEventListener('click',menuSheet);
+$('#ringBtn').addEventListener('click',()=>{progressMsg()});
+$('#scrim').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+$('#sheet').addEventListener('click',ev=>{
+  const b=ev.target.closest('.mi');if(!b)return;
+  const m=b.dataset.m;
+  if(m==='theme'){S.theme=S.theme==='auto'?'light':S.theme==='light'?'dark':'auto';applyTheme();save();menuSheet();return}
+  if(m==='auto'){S.auto=!S.auto;save();if(S.auto)TTS.say('Auto read is on');else TTS.stop();menuSheet();return}
+  closeSheet();
+  if(pending)rush=true;
+  if(m==='topics')showTopics();
+  else if(m==='drill')startDrill();
+  else if(m==='facts')ask(byId.c_facts);
+  else if(m==='progress')progressMsg();
+  else if(m==='new')newChat();
+  else if(m==='about')aboutSheet();
+});
+if(window.matchMedia)try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(S.theme==='auto')applyTheme()})}catch(e){}
+
+/* voice input (where the browser/webview supports it) */
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mic=$('#mic');if(!SR)return;
+  mic.hidden=false;
+  const PH=inp.placeholder;let rec=null,finalText='';
+  mic.addEventListener('click',()=>{
+    if(mic.classList.contains('on')){try{rec&&rec.stop()}catch(e){}return}
+    TTS.stop();
+    try{
+      rec=new SR();rec.lang='en-IN';rec.interimResults=true;rec.continuous=false;rec.maxAlternatives=1;finalText='';
+      rec.onstart=()=>{mic.classList.add('on');inp.placeholder='Listening… speak now'};
+      rec.onresult=e=>{
+        let interim='';finalText='';
+        for(let i=0;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)finalText+=r[0].transcript;else interim+=r[0].transcript}
+        inp.value=(finalText+' '+interim).trim();inp.dispatchEvent(new Event('input'));
+      };
+      rec.onerror=e=>{
+        mic.classList.remove('on');
+        const m=(e.error==='not-allowed'||e.error==='service-not-allowed')?'Mic blocked – use the 🎤 on your keyboard instead':(e.error==='no-speech'?'Didn’t hear anything – try again':'Mic not available – use the 🎤 on your keyboard');
+        toast(m);
+      };
+      rec.onend=()=>{
+        mic.classList.remove('on');inp.placeholder=PH;
+        if(finalText.trim()&&inp.value.trim()){form.requestSubmit?form.requestSubmit():form.dispatchEvent(new Event('submit',{cancelable:true}))}
+      };
+      rec.start();
+    }catch(e){toast('Mic not available – use the 🎤 on your keyboard')}
+  });
+})();
+
+/* ═════════ BOOT ═════════ */
+SC.init();
+loadState();
+applyTheme();updateRing();
+$('#status').textContent=SC.on?'online · connected to LMS':'online · science · evidence · objections';
+window.addEventListener('pagehide',()=>{TTS.stop();SC.finish(S.done)});
+window.addEventListener('beforeunload',()=>{SC.finish(S.done)});
+newChat();
+window.__gc={S,KB,scoreAll:(q)=>scoreAll(KB,q,false),handleText,toSpeech,SPK};
+})();
+</script>
+</body>
+</html>
